@@ -154,20 +154,36 @@ AUTHENTICATION_BACKENDS = [
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
 
-ACCOUNT_AUTHENTICATION_METHOD = 'email'
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_USERNAME_REQUIRED = False
+# Updated Allauth Settings (Latest Version)
+ACCOUNT_LOGIN_METHODS = {'email'}  # Replaces ACCOUNT_AUTHENTICATION_METHOD
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']  # Replaces ACCOUNT_EMAIL_REQUIRED and ACCOUNT_USERNAME_REQUIRED
 ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
-ACCOUNT_SIGNUP_REDIRECT_URL = '/dashboard/'
+ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
+ACCOUNT_CONFIRM_EMAIL_ON_GET = True
+ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 3
+ACCOUNT_LOGIN_ATTEMPTS_LIMIT = 5
+ACCOUNT_LOGIN_ATTEMPTS_TIMEOUT = 300  # 5 minutes
+ACCOUNT_PREVENT_ENUMERATION = False
+
+# URL Redirects
+LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/dashboard/'
 LOGOUT_REDIRECT_URL = '/'
-ACCOUNT_LOGOUT_ON_GET = True
-ACCOUNT_SESSION_REMEMBER = True
 
 # Email Configuration (for development)
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # Custom signup forms
 ACCOUNT_FORMS = {
-    'signup': 'accounts.forms.CustomSignupForm',
+    'signup': 'acc.forms.CustomSignupForm',
+}
+
+# Message tags for Bootstrap/Tailwind compatibility
+from django.contrib.messages import constants as messages
+MESSAGE_TAGS = {
+    messages.DEBUG: 'debug',
+    messages.INFO: 'info',
+    messages.SUCCESS: 'success',
+    messages.WARNING: 'warning',
+    messages.ERROR: 'error',
 }
