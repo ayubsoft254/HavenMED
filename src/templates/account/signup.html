@@ -1,0 +1,276 @@
+{% extends "account/base.html" %}
+{% load widget_tweaks %}
+
+{% block title %}Sign Up - HavenMED{% endblock %}
+
+{% block auth_content %}
+<div class="text-center mb-6">
+    <h2 class="text-2xl font-bold text-white mb-2">Create Your Account</h2>
+    <p class="text-white/80">Join the HavenMED community</p>
+</div>
+
+<form method="post" enctype="multipart/form-data" class="space-y-4" id="signup-form">
+    {% csrf_token %}
+    
+    <!-- User Type Selection -->
+    <div>
+        <label for="{{ form.user_type.id_for_label }}" class="block text-sm font-medium text-white mb-2">
+            Account Type <span class="text-red-300">*</span>
+        </label>
+        {{ form.user_type }}
+        {% if form.user_type.errors %}
+            <div class="text-red-300 text-sm mt-1">{{ form.user_type.errors.0 }}</div>
+        {% endif %}
+    </div>
+
+    <!-- Basic Information -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+            <label for="{{ form.first_name.id_for_label }}" class="block text-sm font-medium text-white mb-2">
+                First Name <span class="text-red-300">*</span>
+            </label>
+            {{ form.first_name }}
+            {% if form.first_name.errors %}
+                <div class="text-red-300 text-sm mt-1">{{ form.first_name.errors.0 }}</div>
+            {% endif %}
+        </div>
+        <div>
+            <label for="{{ form.last_name.id_for_label }}" class="block text-sm font-medium text-white mb-2">
+                Last Name <span class="text-red-300">*</span>
+            </label>
+            {{ form.last_name }}
+            {% if form.last_name.errors %}
+                <div class="text-red-300 text-sm mt-1">{{ form.last_name.errors.0 }}</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div>
+        <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-white mb-2">
+            Email Address <span class="text-red-300">*</span>
+        </label>
+        {{ form.email }}
+        {% if form.email.errors %}
+            <div class="text-red-300 text-sm mt-1">{{ form.email.errors.0 }}</div>
+        {% endif %}
+    </div>
+
+    <div>
+        <label for="{{ form.phone_number.id_for_label }}" class="block text-sm font-medium text-white mb-2">
+            Phone Number <span class="text-red-300">*</span>
+        </label>
+        {{ form.phone_number }}
+        {% if form.phone_number.errors %}
+            <div class="text-red-300 text-sm mt-1">{{ form.phone_number.errors.0 }}</div>
+        {% endif %}
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+            <label for="{{ form.password1.id_for_label }}" class="block text-sm font-medium text-white mb-2">
+                Password <span class="text-red-300">*</span>
+            </label>
+            {{ form.password1 }}
+            {% if form.password1.errors %}
+                <div class="text-red-300 text-sm mt-1">{{ form.password1.errors.0 }}</div>
+            {% endif %}
+        </div>
+        <div>
+            <label for="{{ form.password2.id_for_label }}" class="block text-sm font-medium text-white mb-2">
+                Confirm Password <span class="text-red-300">*</span>
+            </label>
+            {{ form.password2 }}
+            {% if form.password2.errors %}
+                <div class="text-red-300 text-sm mt-1">{{ form.password2.errors.0 }}</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Healthcare Professional Fields -->
+    <div id="healthcare-fields" class="space-y-4 hidden">
+        <h3 class="text-lg font-semibold text-white border-b border-white/20 pb-2">Professional Information</h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label for="{{ form.specialization.id_for_label }}" class="block text-sm font-medium text-white mb-2">
+                    Specialization <span class="text-red-300">*</span>
+                </label>
+                {{ form.specialization }}
+                {% if form.specialization.errors %}
+                    <div class="text-red-300 text-sm mt-1">{{ form.specialization.errors.0 }}</div>
+                {% endif %}
+            </div>
+            <div>
+                <label for="{{ form.years_of_experience.id_for_label }}" class="block text-sm font-medium text-white mb-2">
+                    Years of Experience <span class="text-red-300">*</span>
+                </label>
+                {{ form.years_of_experience }}
+                {% if form.years_of_experience.errors %}
+                    <div class="text-red-300 text-sm mt-1">{{ form.years_of_experience.errors.0 }}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div>
+            <label for="{{ form.kmpdu_license_number.id_for_label }}" class="block text-sm font-medium text-white mb-2">
+                KMPDU License Number <span class="text-red-300">*</span>
+            </label>
+            {{ form.kmpdu_license_number }}
+            {% if form.kmpdu_license_number.errors %}
+                <div class="text-red-300 text-sm mt-1">{{ form.kmpdu_license_number.errors.0 }}</div>
+            {% endif %}
+        </div>
+
+        <div>
+            <label for="{{ form.bio.id_for_label }}" class="block text-sm font-medium text-white mb-2">
+                Professional Bio
+            </label>
+            {{ form.bio }}
+            {% if form.bio.errors %}
+                <div class="text-red-300 text-sm mt-1">{{ form.bio.errors.0 }}</div>
+            {% endif %}
+        </div>
+
+        <div>
+            <label for="{{ form.national_id.id_for_label }}" class="block text-sm font-medium text-white mb-2">
+                National ID/Passport <span class="text-red-300">*</span>
+            </label>
+            {{ form.national_id }}
+            {% if form.national_id.errors %}
+                <div class="text-red-300 text-sm mt-1">{{ form.national_id.errors.0 }}</div>
+            {% endif %}
+        </div>
+
+        <div>
+            <label for="{{ form.kmpdu_license.id_for_label }}" class="block text-sm font-medium text-white mb-2">
+                KMPDU License Document <span class="text-red-300">*</span>
+            </label>
+            {{ form.kmpdu_license }}
+            {% if form.kmpdu_license.errors %}
+                <div class="text-red-300 text-sm mt-1">{{ form.kmpdu_license.errors.0 }}</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Institution Fields -->
+    <div id="institution-fields" class="space-y-4 hidden">
+        <h3 class="text-lg font-semibold text-white border-b border-white/20 pb-2">Institution Information</h3>
+        
+        <div>
+            <label for="{{ form.institution_name.id_for_label }}" class="block text-sm font-medium text-white mb-2">
+                Institution Name <span class="text-red-300">*</span>
+            </label>
+            {{ form.institution_name }}
+            {% if form.institution_name.errors %}
+                <div class="text-red-300 text-sm mt-1">{{ form.institution_name.errors.0 }}</div>
+            {% endif %}
+        </div>
+
+        <div>
+            <label for="{{ form.registration_number.id_for_label }}" class="block text-sm font-medium text-white mb-2">
+                Registration Number <span class="text-red-300">*</span>
+            </label>
+            {{ form.registration_number }}
+            {% if form.registration_number.errors %}
+                <div class="text-red-300 text-sm mt-1">{{ form.registration_number.errors.0 }}</div>
+            {% endif %}
+        </div>
+
+        <div>
+            <label for="{{ form.physical_address.id_for_label }}" class="block text-sm font-medium text-white mb-2">
+                Physical Address <span class="text-red-300">*</span>
+            </label>
+            {{ form.physical_address }}
+            {% if form.physical_address.errors %}
+                <div class="text-red-300 text-sm mt-1">{{ form.physical_address.errors.0 }}</div>
+            {% endif %}
+        </div>
+
+        <div>
+            <label for="{{ form.services_offered.id_for_label }}" class="block text-sm font-medium text-white mb-2">
+                Services Offered
+            </label>
+            {{ form.services_offered }}
+            {% if form.services_offered.errors %}
+                <div class="text-red-300 text-sm mt-1">{{ form.services_offered.errors.0 }}</div>
+            {% endif %}
+        </div>
+
+        <div>
+            <label for="{{ form.medical_license.id_for_label }}" class="block text-sm font-medium text-white mb-2">
+                Medical Institution License <span class="text-red-300">*</span>
+            </label>
+            {{ form.medical_license }}
+            {% if form.medical_license.errors %}
+                <div class="text-red-300 text-sm mt-1">{{ form.medical_license.errors.0 }}</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Patient Notice -->
+    <div id="patient-notice" class="hidden bg-green-500/20 border border-green-300/30 rounded-lg p-4">
+        <div class="flex items-center">
+            <i class="fas fa-check-circle text-green-300 mr-2"></i>
+            <span class="text-green-100 text-sm">
+                Patient accounts are automatically approved and you'll have immediate access to all features.
+            </span>
+        </div>
+    </div>
+
+    <!-- Approval Notice -->
+    <div id="approval-notice" class="hidden bg-yellow-500/20 border border-yellow-300/30 rounded-lg p-4">
+        <div class="flex items-center">
+            <i class="fas fa-clock text-yellow-300 mr-2"></i>
+            <span class="text-yellow-100 text-sm">
+                Your account will require admin approval before you can access all features. You'll receive an email notification once approved.
+            </span>
+        </div>
+    </div>
+
+    <button type="submit" class="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-3 px-4 rounded-lg hover:from-green-600 hover:to-emerald-700 transition duration-300 transform hover:scale-105 font-semibold shadow-lg">
+        Create Account
+    </button>
+</form>
+
+<div class="text-center mt-6">
+    <p class="text-white/80 text-sm">
+        Already have an account? 
+        <a href="{% url 'account_login' %}" class="text-white hover:text-blue-200 transition duration-300 font-medium">
+            Sign In
+        </a>
+    </p>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const userTypeSelect = document.getElementById('{{ form.user_type.id_for_label }}');
+        const healthcareFields = document.getElementById('healthcare-fields');
+        const institutionFields = document.getElementById('institution-fields');
+        const patientNotice = document.getElementById('patient-notice');
+        const approvalNotice = document.getElementById('approval-notice');
+
+        function toggleFields() {
+            const userType = userTypeSelect.value;
+            
+            // Hide all sections first
+            healthcareFields.classList.add('hidden');
+            institutionFields.classList.add('hidden');
+            patientNotice.classList.add('hidden');
+            approvalNotice.classList.add('hidden');
+
+            if (userType === 'healthcare_professional') {
+                healthcareFields.classList.remove('hidden');
+                approvalNotice.classList.remove('hidden');
+            } else if (userType === 'clinic' || userType === 'hospital') {
+                institutionFields.classList.remove('hidden');
+                approvalNotice.classList.remove('hidden');
+            } else if (userType === 'patient') {
+                patientNotice.classList.remove('hidden');
+            }
+        }
+
+        userTypeSelect.addEventListener('change', toggleFields);
+        toggleFields(); // Initial call
+    });
+</script>
+{% endblock %}
