@@ -67,20 +67,20 @@
 </head>
 <body class="bg-gray-50">
     <!-- Navigation -->
-    <nav class="bg-white/95 backdrop-blur-sm shadow-lg sticky top-0 z-50 border-b border-slate-200">
+    <nav id="navbar" class="bg-white/95 backdrop-blur-sm shadow-lg sticky top-0 z-50 border-b border-slate-200 transition-transform duration-300">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
                 <!-- Logo -->
                 <div class="flex items-center">
-                    <img src="{% static 'images/logo.png' %}" alt="HavenMED Logo" class="h-10 mr-3">
+                    <img src="{% static 'logo.png' %}" alt="HavenMED Logo" class="h-10 mr-3">
                     <span class="text-2xl font-black bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">HavenMED</span>
                 </div>
 
                 <!-- Desktop Navigation -->
                 <div class="hidden md:flex items-center space-x-8">
-                    <a href="#" class="text-slate-700 hover:text-blue-600 transition duration-300 font-medium">Home</a>
+                    <a href="{% url 'landing_page' %}" class="text-slate-700 hover:text-blue-600 transition duration-300 font-medium">Home</a>
                     <a href="#features" class="text-slate-700 hover:text-blue-600 transition duration-300 font-medium">Features</a>
-                    <a href="#about" class="text-slate-700 hover:text-blue-600 transition duration-300 font-medium">About</a>
+                    <a href="{% url 'about_page' %}" class="text-slate-700 hover:text-blue-600 transition duration-300 font-medium">About</a>
                     <a href="#contact" class="text-slate-700 hover:text-blue-600 transition duration-300 font-medium">Contact</a>
                     <button class="bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-6 py-2 rounded-full hover:from-blue-700 hover:to-cyan-700 transition duration-300 transform hover:scale-105 font-semibold shadow-lg">
                         Join as Provider
@@ -98,9 +98,9 @@
             <!-- Mobile Navigation -->
             <div id="mobile-menu" class="md:hidden hidden bg-white/95 backdrop-blur-sm border-t border-slate-200">
                 <div class="px-2 pt-2 pb-3 space-y-1">
-                    <a href="#" class="block px-3 py-2 text-slate-700 hover:text-blue-600 font-medium">Home</a>
+                    <a href="{% url 'landing_page' %}" class="block px-3 py-2 text-slate-700 hover:text-blue-600 font-medium">Home</a>
                     <a href="#features" class="block px-3 py-2 text-slate-700 hover:text-blue-600 font-medium">Features</a>
-                    <a href="#about" class="block px-3 py-2 text-slate-700 hover:text-blue-600 font-medium">About</a>
+                    <a href="{% url 'about_page' %}" class="block px-3 py-2 text-slate-700 hover:text-blue-600 font-medium">About</a>
                     <a href="#contact" class="block px-3 py-2 text-slate-700 hover:text-blue-600 font-medium">Contact</a>
                     <button class="w-full mt-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-4 py-2 rounded-full hover:from-blue-700 hover:to-cyan-700 transition duration-300 font-semibold">
                         Join as Provider
@@ -123,7 +123,7 @@
                 <!-- Logo and Description -->
                 <div class="md:col-span-2">
                     <div class="flex items-center mb-4">
-                        <img src="{% static 'images/logo.png' %}" alt="HavenMED Logo" class="h-8 mr-3">
+                        <img src="{% static 'logo.png' %}" alt="HavenMED Logo" class="h-8 mr-3">
                         <span class="text-2xl font-bold">HavenMED</span>
                     </div>
                     <p class="text-gray-300 mb-4">
@@ -178,6 +178,7 @@
 
     <!-- Mobile Menu Toggle Script -->
     <script>
+        // Mobile menu toggle
         document.getElementById('mobile-menu-button').addEventListener('click', function() {
             const menu = document.getElementById('mobile-menu');
             menu.classList.toggle('hidden');
@@ -193,6 +194,41 @@
                         behavior: 'smooth'
                     });
                 }
+            });
+        });
+
+        // Navbar hide/show on scroll
+        let lastScrollY = window.scrollY;
+        const navbar = document.getElementById('navbar');
+        
+        window.addEventListener('scroll', () => {
+            const currentScrollY = window.scrollY;
+            
+            if (currentScrollY > lastScrollY && currentScrollY > 100) {
+                // Scrolling down & past 100px
+                navbar.style.transform = 'translateY(-100%)';
+            } else {
+                // Scrolling up or at top
+                navbar.style.transform = 'translateY(0)';
+            }
+            
+            lastScrollY = currentScrollY;
+        });
+
+        // Close mobile menu when clicking outside or on a link
+        document.addEventListener('click', function(event) {
+            const mobileMenu = document.getElementById('mobile-menu');
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            
+            if (!mobileMenu.contains(event.target) && !mobileMenuButton.contains(event.target)) {
+                mobileMenu.classList.add('hidden');
+            }
+        });
+
+        // Close mobile menu when clicking on a link
+        document.querySelectorAll('#mobile-menu a').forEach(link => {
+            link.addEventListener('click', () => {
+                document.getElementById('mobile-menu').classList.add('hidden');
             });
         });
     </script>
