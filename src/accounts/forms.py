@@ -1,6 +1,6 @@
 from django import forms
 from allauth.account.forms import SignupForm
-from .models import User, PatientProfile, HealthcareProfessionalProfile, InstitutionProfile
+from ..landing.models import User, PatientProfile, HealthcareProfessionalProfile, InstitutionProfile
 
 class CustomSignupForm(SignupForm):
     USER_TYPE_CHOICES = [
