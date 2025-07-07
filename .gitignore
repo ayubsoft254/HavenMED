@@ -123,7 +123,3 @@ certs/
 
 # Docker specific
 .docker/
-
-# Local settings
-update-app.ps1
-push-to-server.ps1
