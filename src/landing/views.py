@@ -12,3 +12,9 @@ def about_page(request):
     Render the about page.
     """
     return render(request, 'landing/about_page.html')
+
+def contact_page(request):
+    """
+    Render the contact page.
+    """
+    return render(request, 'landing/contact_page.html')

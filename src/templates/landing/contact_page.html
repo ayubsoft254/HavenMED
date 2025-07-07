@@ -1,0 +1,389 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Contact HavenMED - Get in Touch{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="relative min-h-[60vh] bg-gradient-to-br from-slate-900 via-blue-900 to-cyan-900 text-white overflow-hidden -mt-16">
+    <!-- Animated Background Elements -->
+    <div class="absolute inset-0">
+        <div class="absolute top-20 left-10 w-72 h-72 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
+        <div class="absolute bottom-20 right-10 w-72 h-72 bg-cyan-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse animation-delay-2000"></div>
+    </div>
+
+    <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-32 pt-32">
+        <div class="text-center">
+            <div class="inline-flex items-center bg-cyan-500/20 backdrop-blur-sm border border-cyan-400/30 rounded-full px-6 py-2 text-sm font-medium text-cyan-200 mb-8">
+                <i class="fas fa-envelope mr-2"></i>
+                Get In Touch
+            </div>
+            
+            <h1 class="text-5xl md:text-7xl font-black mb-6 leading-tight">
+                Contact
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">
+                    HavenMED
+                </span>
+            </h1>
+            
+            <p class="text-xl md:text-2xl text-slate-300 max-w-4xl mx-auto leading-relaxed">
+                Have questions about our services? Ready to join our healthcare revolution? 
+                We're here to help you every step of the way.
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- Contact Methods Section -->
+<section class="py-24 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+            <h2 class="text-4xl font-bold text-slate-900 mb-4">Multiple Ways to Reach Us</h2>
+            <p class="text-xl text-slate-600 max-w-3xl mx-auto">
+                Choose the communication method that works best for you. We're available 24/7 to assist you.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
+            <!-- Phone -->
+            <div class="text-center p-8 bg-slate-50 rounded-3xl hover:shadow-lg transition-all duration-300 group">
+                <div class="bg-gradient-to-r from-blue-500 to-cyan-500 text-white w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+                    <i class="fas fa-phone text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-slate-900 mb-3">Call Us</h3>
+                <p class="text-slate-600 mb-4">Available 24/7 for emergencies</p>
+                <a href="tel:+254700000000" class="text-blue-600 font-semibold hover:text-blue-700 transition duration-300">
+                    +254 700 000 000
+                </a>
+            </div>
+
+            <!-- WhatsApp -->
+            <div class="text-center p-8 bg-slate-50 rounded-3xl hover:shadow-lg transition-all duration-300 group">
+                <div class="bg-gradient-to-r from-green-500 to-emerald-500 text-white w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+                    <i class="fab fa-whatsapp text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-slate-900 mb-3">WhatsApp</h3>
+                <p class="text-slate-600 mb-4">Quick support & bookings</p>
+                <a href="https://wa.me/254700000000" class="text-green-600 font-semibold hover:text-green-700 transition duration-300">
+                    Message Us
+                </a>
+            </div>
+
+            <!-- Email -->
+            <div class="text-center p-8 bg-slate-50 rounded-3xl hover:shadow-lg transition-all duration-300 group">
+                <div class="bg-gradient-to-r from-purple-500 to-pink-500 text-white w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+                    <i class="fas fa-envelope text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-slate-900 mb-3">Email</h3>
+                <p class="text-slate-600 mb-4">Detailed inquiries</p>
+                <a href="mailto:info@havenmed.co.ke" class="text-purple-600 font-semibold hover:text-purple-700 transition duration-300">
+                    info@havenmed.co.ke
+                </a>
+            </div>
+
+            <!-- Live Chat -->
+            <div class="text-center p-8 bg-slate-50 rounded-3xl hover:shadow-lg transition-all duration-300 group">
+                <div class="bg-gradient-to-r from-cyan-500 to-blue-500 text-white w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+                    <i class="fas fa-comments text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-slate-900 mb-3">Live Chat</h3>
+                <p class="text-slate-600 mb-4">Instant responses</p>
+                <button class="text-cyan-600 font-semibold hover:text-cyan-700 transition duration-300">
+                    Start Chat
+                </button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Contact Form & Info Section -->
+<section class="py-24 bg-slate-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-16">
+            <!-- Contact Form -->
+            <div class="bg-white p-10 rounded-3xl shadow-lg">
+                <h3 class="text-3xl font-bold text-slate-900 mb-8">Send Us a Message</h3>
+                
+                <form class="space-y-6">
+                    <!-- Name Fields -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="first_name" class="block text-sm font-medium text-slate-700 mb-2">First Name *</label>
+                            <input type="text" id="first_name" name="first_name" required 
+                                   class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300">
+                        </div>
+                        <div>
+                            <label for="last_name" class="block text-sm font-medium text-slate-700 mb-2">Last Name *</label>
+                            <input type="text" id="last_name" name="last_name" required 
+                                   class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300">
+                        </div>
+                    </div>
+
+                    <!-- Email & Phone -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="email" class="block text-sm font-medium text-slate-700 mb-2">Email Address *</label>
+                            <input type="email" id="email" name="email" required 
+                                   class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300">
+                        </div>
+                        <div>
+                            <label for="phone" class="block text-sm font-medium text-slate-700 mb-2">Phone Number</label>
+                            <input type="tel" id="phone" name="phone" placeholder="+254 700 000 000"
+                                   class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300">
+                        </div>
+                    </div>
+
+                    <!-- Subject -->
+                    <div>
+                        <label for="subject" class="block text-sm font-medium text-slate-700 mb-2">Subject *</label>
+                        <select id="subject" name="subject" required 
+                                class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300">
+                            <option value="">Select a subject</option>
+                            <option value="patient_inquiry">Patient Inquiry</option>
+                            <option value="provider_application">Provider Application</option>
+                            <option value="clinic_partnership">Clinic Partnership</option>
+                            <option value="technical_support">Technical Support</option>
+                            <option value="billing_inquiry">Billing Inquiry</option>
+                            <option value="general_feedback">General Feedback</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+
+                    <!-- Message -->
+                    <div>
+                        <label for="message" class="block text-sm font-medium text-slate-700 mb-2">Message *</label>
+                        <textarea id="message" name="message" rows="6" required 
+                                  placeholder="Tell us how we can help you..."
+                                  class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300 resize-none"></textarea>
+                    </div>
+
+                    <!-- Privacy Consent -->
+                    <div class="flex items-start">
+                        <input type="checkbox" id="privacy_consent" name="privacy_consent" required 
+                               class="mt-1 w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500">
+                        <label for="privacy_consent" class="ml-3 text-sm text-slate-600">
+                            I agree to the <a href="#" class="text-blue-600 hover:text-blue-700">Privacy Policy</a> and 
+                            <a href="#" class="text-blue-600 hover:text-blue-700">Terms of Service</a> *
+                        </label>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" 
+                            class="w-full bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-8 py-4 rounded-xl font-bold text-lg hover:from-blue-700 hover:to-cyan-700 transition-all duration-300 transform hover:scale-105 shadow-lg">
+                        <i class="fas fa-paper-plane mr-2"></i>
+                        Send Message
+                    </button>
+                </form>
+            </div>
+
+            <!-- Contact Information -->
+            <div class="space-y-8">
+                <!-- Office Information -->
+                <div class="bg-white p-8 rounded-3xl shadow-lg">
+                    <h3 class="text-2xl font-bold text-slate-900 mb-6">Our Office</h3>
+                    
+                    <div class="space-y-6">
+                        <div class="flex items-start">
+                            <div class="bg-blue-100 text-blue-600 w-12 h-12 rounded-xl flex items-center justify-center mr-4 flex-shrink-0">
+                                <i class="fas fa-map-marker-alt text-xl"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-slate-900 mb-1">Address</h4>
+                                <p class="text-slate-600">
+                                    HavenMED Plaza, 5th Floor<br>
+                                    Kenyatta Avenue<br>
+                                    Nairobi, Kenya
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start">
+                            <div class="bg-green-100 text-green-600 w-12 h-12 rounded-xl flex items-center justify-center mr-4 flex-shrink-0">
+                                <i class="fas fa-clock text-xl"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-slate-900 mb-1">Office Hours</h4>
+                                <p class="text-slate-600">
+                                    Monday - Friday: 8:00 AM - 6:00 PM<br>
+                                    Saturday: 9:00 AM - 4:00 PM<br>
+                                    Sunday: Emergency only
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start">
+                            <div class="bg-purple-100 text-purple-600 w-12 h-12 rounded-xl flex items-center justify-center mr-4 flex-shrink-0">
+                                <i class="fas fa-ambulance text-xl"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-slate-900 mb-1">Emergency Services</h4>
+                                <p class="text-slate-600">
+                                    24/7 Emergency Line<br>
+                                    <a href="tel:+254700000911" class="text-red-600 font-semibold">+254 700 000 911</a>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="bg-gradient-to-br from-blue-600 to-cyan-600 p-8 rounded-3xl text-white">
+                    <h3 class="text-2xl font-bold mb-6">Quick Actions</h3>
+                    
+                    <div class="space-y-4">
+                        <button class="w-full bg-white/20 backdrop-blur-sm border border-white/30 text-white px-6 py-3 rounded-xl hover:bg-white/30 transition duration-300 font-semibold text-left">
+                            <i class="fas fa-calendar-check mr-3"></i>
+                            Book an Appointment
+                        </button>
+                        
+                        <button class="w-full bg-white/20 backdrop-blur-sm border border-white/30 text-white px-6 py-3 rounded-xl hover:bg-white/30 transition duration-300 font-semibold text-left">
+                            <i class="fas fa-user-md mr-3"></i>
+                            Apply as Provider
+                        </button>
+                        
+                        <button class="w-full bg-white/20 backdrop-blur-sm border border-white/30 text-white px-6 py-3 rounded-xl hover:bg-white/30 transition duration-300 font-semibold text-left">
+                            <i class="fas fa-hospital mr-3"></i>
+                            Partner with Us
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Support Hours -->
+                <div class="bg-white p-8 rounded-3xl shadow-lg">
+                    <h3 class="text-2xl font-bold text-slate-900 mb-6">Support Availability</h3>
+                    
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-600">General Support</span>
+                            <span class="text-green-600 font-semibold flex items-center">
+                                <span class="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
+                                24/7
+                            </span>
+                        </div>
+                        
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-600">Technical Support</span>
+                            <span class="text-blue-600 font-semibold">8 AM - 8 PM</span>
+                        </div>
+                        
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-600">Billing Support</span>
+                            <span class="text-purple-600 font-semibold">9 AM - 5 PM</span>
+                        </div>
+                        
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-600">Emergency Line</span>
+                            <span class="text-red-600 font-semibold flex items-center">
+                                <span class="w-2 h-2 bg-red-500 rounded-full mr-2 animate-pulse"></span>
+                                24/7
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FAQ Section -->
+<section class="py-24 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+            <h2 class="text-4xl font-bold text-slate-900 mb-4">Frequently Asked Questions</h2>
+            <p class="text-xl text-slate-600 max-w-3xl mx-auto">
+                Find quick answers to common questions about HavenMED services.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- FAQ Item 1 -->
+            <div class="bg-slate-50 p-8 rounded-3xl">
+                <h3 class="text-xl font-bold text-slate-900 mb-4">How do I book a home visit?</h3>
+                <p class="text-slate-600">
+                    You can book a home visit through our mobile app, website, or by calling our support line. 
+                    Simply select your preferred provider, choose a time slot, and confirm your booking.
+                </p>
+            </div>
+
+            <!-- FAQ Item 2 -->
+            <div class="bg-slate-50 p-8 rounded-3xl">
+                <h3 class="text-xl font-bold text-slate-900 mb-4">Are all providers verified?</h3>
+                <p class="text-slate-600">
+                    Yes, all healthcare providers on HavenMED undergo thorough verification including 
+                    license checks, background verification, and continuous quality monitoring.
+                </p>
+            </div>
+
+            <!-- FAQ Item 3 -->
+            <div class="bg-slate-50 p-8 rounded-3xl">
+                <h3 class="text-xl font-bold text-slate-900 mb-4">What are your consultation fees?</h3>
+                <p class="text-slate-600">
+                    Virtual consultations start from KSh 300, while home visits range from KSh 800-1,500 
+                    depending on the provider and services required.
+                </p>
+            </div>
+
+            <!-- FAQ Item 4 -->
+            <div class="bg-slate-50 p-8 rounded-3xl">
+                <h3 class="text-xl font-bold text-slate-900 mb-4">Do you accept insurance?</h3>
+                <p class="text-slate-600">
+                    We work with major insurance providers in Kenya. Check with our support team to 
+                    confirm if your insurance plan is accepted.
+                </p>
+            </div>
+
+            <!-- FAQ Item 5 -->
+            <div class="bg-slate-50 p-8 rounded-3xl">
+                <h3 class="text-xl font-bold text-slate-900 mb-4">How can I become a provider?</h3>
+                <p class="text-slate-600">
+                    Healthcare professionals can apply through our provider portal. You'll need to submit 
+                    your credentials, undergo verification, and complete our onboarding process.
+                </p>
+            </div>
+
+            <!-- FAQ Item 6 -->
+            <div class="bg-slate-50 p-8 rounded-3xl">
+                <h3 class="text-xl font-bold text-slate-900 mb-4">Is emergency care available?</h3>
+                <p class="text-slate-600">
+                    Yes, we have 24/7 emergency support. For life-threatening emergencies, call 911 first, 
+                    then contact our emergency line for additional support.
+                </p>
+            </div>
+        </div>
+
+        <div class="text-center mt-12">
+            <p class="text-slate-600 mb-6">Still have questions?</p>
+            <button class="bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-8 py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-cyan-700 transition duration-300">
+                View All FAQs
+            </button>
+        </div>
+    </div>
+</section>
+
+<!-- Map Section (Placeholder) -->
+<section class="py-24 bg-slate-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+            <h2 class="text-4xl font-bold text-slate-900 mb-4">Find Us</h2>
+            <p class="text-xl text-slate-600">
+                Visit our office in Nairobi or connect with us virtually from anywhere in Kenya.
+            </p>
+        </div>
+
+        <div class="bg-white rounded-3xl shadow-lg overflow-hidden">
+            <div class="h-96 bg-gradient-to-br from-blue-100 to-cyan-100 flex items-center justify-center">
+                <div class="text-center">
+                    <i class="fas fa-map-marked-alt text-6xl text-blue-500 mb-4"></i>
+                    <h3 class="text-2xl font-bold text-slate-900 mb-2">Interactive Map</h3>
+                    <p class="text-slate-600">
+                        HavenMED Plaza, 5th Floor, Kenyatta Avenue, Nairobi
+                    </p>
+                    <button class="mt-4 bg-blue-600 text-white px-6 py-2 rounded-xl hover:bg-blue-700 transition duration-300">
+                        Get Directions
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
