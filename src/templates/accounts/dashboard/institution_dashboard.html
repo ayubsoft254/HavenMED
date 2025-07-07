@@ -1,0 +1,439 @@
+{% extends "accounts/dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}{{ profile.get_institution_type_display }} Dashboard - HavenMED{% endblock %}
+
+{% block dashboard_nav %}
+<a href="{% url 'institution_dashboard' %}" class="flex items-center px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-md">
+    <i class="fas fa-home mr-2"></i>Dashboard
+</a>
+<a href="#" class="flex items-center px-4 py-2 text-sm font-medium text-gray-600 hover:text-blue-600 hover:bg-gray-50 rounded-md">
+    <i class="fas fa-calendar-alt mr-2"></i>Appointments
+</a>
+<a href="#" class="flex items-center px-4 py-2 text-sm font-medium text-gray-600 hover:text-blue-600 hover:bg-gray-50 rounded-md">
+    <i class="fas fa-users mr-2"></i>Staff
+</a>
+<a href="#" class="flex items-center px-4 py-2 text-sm font-medium text-gray-600 hover:text-blue-600 hover:bg-gray-50 rounded-md">
+    <i class="fas fa-bed mr-2"></i>Facilities
+</a>
+<a href="#" class="flex items-center px-4 py-2 text-sm font-medium text-gray-600 hover:text-blue-600 hover:bg-gray-50 rounded-md">
+    <i class="fas fa-chart-bar mr-2"></i>Reports
+</a>
+{% endblock %}
+
+{% block dashboard_content %}
+<!-- Status Banner -->
+{% if not user.is_approved %}
+<div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-8">
+    <div class="flex items-center">
+        <i class="fas fa-clock text-yellow-500 mr-3"></i>
+        <div>
+            <h3 class="text-yellow-800 font-medium">Institution Pending Approval</h3>
+            <p class="text-yellow-700 text-sm">Your institution registration is currently under review. You'll receive an email notification once approved.</p>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Institution Header -->
+<div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+    <div class="flex items-center space-x-6">
+        <img src="{{ user.get_profile_photo_url }}" alt="{{ profile.institution_name }}" class="w-20 h-20 rounded-xl object-cover border-4 border-blue-100">
+        <div class="flex-1">
+            <h2 class="text-2xl font-bold text-gray-900">{{ profile.institution_name }}</h2>
+            <p class="text-gray-600">{{ profile.get_institution_type_display }}</p>
+            <div class="flex items-center mt-2">
+                <div class="flex items-center">
+                    {% for i in "12345" %}
+                        <i class="fas fa-star {% if profile.average_rating >= forloop.counter %}text-yellow-400{% else %}text-gray-300{% endif %}"></i>
+                    {% endfor %}
+                    <span class="ml-2 text-gray-600">({{ profile.average_rating }}/5.0 - {{ profile.total_reviews }} reviews)</span>
+                </div>
+            </div>
+            <p class="text-gray-500 mt-1">
+                <i class="fas fa-map-marker-alt mr-1"></i>
+                {{ profile.get_location_display }}
+            </p>
+        </div>
+        <div class="text-right">
+            <div class="flex items-center space-x-4">
+                {% if profile.emergency_services %}
+                    <div class="bg-red-100 text-red-600 px-3 py-1 rounded-full text-sm font-medium">
+                        <i class="fas fa-ambulance mr-1"></i>Emergency
+                    </div>
+                {% endif %}
+                <div class="bg-green-100 text-green-600 px-3 py-1 rounded-full text-sm font-medium">
+                    <i class="fas fa-check-circle mr-1"></i>Active
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Stats -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+    <div class="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-xl p-6 shadow-lg">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-blue-100 text-sm font-medium">Total Patients</p>
+                <p class="text-white text-3xl font-bold">{{ stats.total_patients }}</p>
+                <p class="text-blue-100 text-sm">This month</p>
+            </div>
+            <div class="bg-white/20 rounded-full p-3">
+                <i class="fas fa-users text-white text-xl"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-gradient-to-br from-green-500 to-green-600 text-white rounded-xl p-6 shadow-lg">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-green-100 text-sm font-medium">Today's Appointments</p>
+                <p class="text-white text-3xl font-bold">{{ stats.appointments_today }}</p>
+                <p class="text-green-100 text-sm">Scheduled</p>
+            </div>
+            <div class="bg-white/20 rounded-full p-3">
+                <i class="fas fa-calendar-day text-white text-xl"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-xl p-6 shadow-lg">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-purple-100 text-sm font-medium">Staff Members</p>
+                <p class="text-white text-3xl font-bold">{{ stats.staff_count }}</p>
+                <p class="text-purple-100 text-sm">Active staff</p>
+            </div>
+            <div class="bg-white/20 rounded-full p-3">
+                <i class="fas fa-user-md text-white text-xl"></i>
+            </div>
+        </div>
+    </div>
+    
+    {% if profile.bed_capacity %}
+    <div class="bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-xl p-6 shadow-lg">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-orange-100 text-sm font-medium">Bed Occupancy</p>
+                <p class="text-white text-3xl font-bold">{{ stats.occupancy_rate }}%</p>
+                <p class="text-orange-100 text-sm">{{ stats.bed_capacity }} total beds</p>
+            </div>
+            <div class="bg-white/20 rounded-full p-3">
+                <i class="fas fa-bed text-white text-xl"></i>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="bg-gradient-to-br from-teal-500 to-teal-600 text-white rounded-xl p-6 shadow-lg">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-teal-100 text-sm font-medium">Services</p>
+                <p class="text-white text-3xl font-bold">{{ profile.services_offered|truncatewords:1 }}</p>
+                <p class="text-teal-100 text-sm">Available</p>
+            </div>
+            <div class="bg-white/20 rounded-full p-3">
+                <i class="fas fa-stethoscope text-white text-xl"></i>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Main Content Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- Left Column - Operations -->
+    <div class="lg:col-span-2 space-y-8">
+        <!-- Today's Schedule Overview -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-semibold text-gray-900">Today's Operations</h3>
+                    <button class="text-blue-600 hover:text-blue-700 text-sm font-medium">View Full Schedule</button>
+                </div>
+            </div>
+            <div class="p-6">
+                {% if recent_appointments %}
+                    <div class="space-y-4">
+                        {% for appointment in recent_appointments %}
+                            <div class="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+                                <div class="text-center min-w-0">
+                                    <p class="text-sm font-medium text-gray-900">{{ appointment.time|time:"g:i A" }}</p>
+                                    <p class="text-xs text-gray-500">{{ appointment.department }}</p>
+                                </div>
+                                <img src="{{ appointment.patient.user.get_profile_photo_url }}" alt="{{ appointment.patient.user.get_display_name }}" class="w-10 h-10 rounded-full object-cover">
+                                <div class="flex-1 min-w-0">
+                                    <p class="font-medium text-gray-900 truncate">{{ appointment.patient.user.get_display_name }}</p>
+                                    <p class="text-sm text-gray-600">{{ appointment.service_type }}</p>
+                                    <p class="text-xs text-gray-500">Dr. {{ appointment.doctor.user.get_display_name }}</p>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="bg-green-100 text-green-600 px-2 py-1 rounded-lg text-xs font-medium">
+                                        {{ appointment.status }}
+                                    </span>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-8">
+                        <i class="fas fa-calendar-alt text-gray-300 text-4xl mb-4"></i>
+                        <p class="text-gray-600 mb-4">No appointments scheduled for today</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Staff Management -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-semibold text-gray-900">Staff Overview</h3>
+                    <button class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700">
+                        <i class="fas fa-plus mr-2"></i>Add Staff
+                    </button>
+                </div>
+            </div>
+            <div class="p-6">
+                {% if staff_members %}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {% for staff in staff_members %}
+                            <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                                <img src="{{ staff.user.get_profile_photo_url }}" alt="{{ staff.user.get_display_name }}" class="w-10 h-10 rounded-full object-cover">
+                                <div class="flex-1">
+                                    <p class="font-medium text-gray-900">{{ staff.user.get_display_name }}</p>
+                                    <p class="text-sm text-gray-600">{{ staff.role }}</p>
+                                </div>
+                                <div class="text-right">
+                                    <span class="bg-green-100 text-green-600 px-2 py-1 rounded-lg text-xs font-medium">
+                                        On Duty
+                                    </span>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-8">
+                        <i class="fas fa-user-md text-gray-300 text-4xl mb-4"></i>
+                        <p class="text-gray-600 mb-4">No staff members added yet</p>
+                        <button class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
+                            Add Your First Staff Member
+                        </button>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Services Offered -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-semibold text-gray-900">Services & Departments</h3>
+                    <button class="text-blue-600 hover:text-blue-700 text-sm font-medium">Edit Services</button>
+                </div>
+            </div>
+            <div class="p-6">
+                {% if profile.services_offered %}
+                    <div class="prose prose-sm max-w-none">
+                        {{ profile.services_offered|linebreaks }}
+                    </div>
+                {% else %}
+                    <div class="text-center py-8">
+                        <i class="fas fa-stethoscope text-gray-300 text-4xl mb-4"></i>
+                        <p class="text-gray-600 mb-4">No services listed yet</p>
+                        <button class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
+                            Add Services
+                        </button>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column - Information & Tools -->
+    <div class="space-y-8">
+        <!-- Institution Details -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+            <div class="p-6 border-b border-gray-200">
+                <h3 class="text-lg font-semibold text-gray-900">Institution Details</h3>
+            </div>
+            <div class="p-6">
+                <div class="space-y-4">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Registration Number</p>
+                        <p class="text-gray-900">{{ profile.registration_number }}</p>
+                    </div>
+                    
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Physical Address</p>
+                        <p class="text-gray-900">{{ profile.physical_address }}</p>
+                    </div>
+                    
+                    {% if profile.website %}
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Website</p>
+                        <a href="{{ profile.website }}" target="_blank" class="text-blue-600 hover:text-blue-700">{{ profile.website }}</a>
+                    </div>
+                    {% endif %}
+                    
+                    {% if profile.operating_hours %}
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Operating Hours</p>
+                        <p class="text-gray-900">{{ profile.operating_hours }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Emergency Services</p>
+                        <span class="{% if profile.emergency_services %}text-green-600{% else %}text-red-600{% endif %}">
+                            {% if profile.emergency_services %}Available 24/7{% else %}Not Available{% endif %}
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="mt-6">
+                    <button class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors duration-200">
+                        Edit Institution Details
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+            <div class="p-6 border-b border-gray-200">
+                <h3 class="text-lg font-semibold text-gray-900">Quick Actions</h3>
+            </div>
+            <div class="p-6">
+                <div class="space-y-3">
+                    <button class="w-full flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200">
+                        <div class="flex items-center">
+                            <i class="fas fa-user-plus text-blue-500 mr-3"></i>
+                            <span class="text-gray-700">Add New Patient</span>
+                        </div>
+                        <i class="fas fa-chevron-right text-gray-400"></i>
+                    </button>
+                    
+                    <button class="w-full flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200">
+                        <div class="flex items-center">
+                            <i class="fas fa-calendar-plus text-green-500 mr-3"></i>
+                            <span class="text-gray-700">Schedule Appointment</span>
+                        </div>
+                        <i class="fas fa-chevron-right text-gray-400"></i>
+                    </button>
+                    
+                    <button class="w-full flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200">
+                        <div class="flex items-center">
+                            <i class="fas fa-bed text-purple-500 mr-3"></i>
+                            <span class="text-gray-700">Manage Beds</span>
+                        </div>
+                        <i class="fas fa-chevron-right text-gray-400"></i>
+                    </button>
+                    
+                    <button class="w-full flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200">
+                        <div class="flex items-center">
+                            <i class="fas fa-chart-line text-orange-500 mr-3"></i>
+                            <span class="text-gray-700">View Reports</span>
+                        </div>
+                        <i class="fas fa-chevron-right text-gray-400"></i>
+                    </button>
+                    
+                    <button class="w-full flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200">
+                        <div class="flex items-center">
+                            <i class="fas fa-cog text-gray-500 mr-3"></i>
+                            <span class="text-gray-700">Institution Settings</span>
+                        </div>
+                        <i class="fas fa-chevron-right text-gray-400"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Reviews -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-semibold text-gray-900">Recent Reviews</h3>
+                    <span class="text-sm text-gray-500">{{ profile.total_reviews }} total</span>
+                </div>
+            </div>
+            <div class="p-6">
+                <!-- Sample reviews - replace with actual data -->
+                <div class="space-y-4">
+                    <div class="border-b border-gray-100 pb-4 last:border-b-0 last:pb-0">
+                        <div class="flex items-center mb-2">
+                            <div class="flex items-center">
+                                {% for i in "12345" %}
+                                    <i class="fas fa-star text-yellow-400 text-sm"></i>
+                                {% endfor %}
+                            </div>
+                            <span class="ml-2 text-sm text-gray-600">3 days ago</span>
+                        </div>
+                        <p class="text-gray-700 text-sm">"Excellent facility with professional staff. Great experience overall."</p>
+                        <p class="text-gray-500 text-xs mt-1">- Patient Review</p>
+                    </div>
+                    
+                    <div class="border-b border-gray-100 pb-4 last:border-b-0 last:pb-0">
+                        <div class="flex items-center mb-2">
+                            <div class="flex items-center">
+                                {% for i in "12345" %}
+                                    <i class="fas fa-star {% if forloop.counter <= 4 %}text-yellow-400{% else %}text-gray-300{% endif %} text-sm"></i>
+                                {% endfor %}
+                            </div>
+                            <span class="ml-2 text-sm text-gray-600">1 week ago</span>
+                        </div>
+                        <p class="text-gray-700 text-sm">"Clean facility and good service. Recommend for quality care."</p>
+                        <p class="text-gray-500 text-xs mt-1">- Patient Review</p>
+                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    <button class="w-full text-blue-600 hover:text-blue-700 text-sm font-medium">
+                        View All Reviews
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance Metrics -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+            <div class="p-6 border-b border-gray-200">
+                <h3 class="text-lg font-semibold text-gray-900">Performance Metrics</h3>
+            </div>
+            <div class="p-6">
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-600">Patient Satisfaction</span>
+                        <div class="flex items-center">
+                            <div class="w-20 bg-gray-200 rounded-full h-2 mr-2">
+                                <div class="bg-green-500 h-2 rounded-full" style="width: 92%"></div>
+                            </div>
+                            <span class="text-sm font-medium text-gray-900">92%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-600">Average Wait Time</span>
+                        <span class="text-gray-900 font-medium">15 min</span>
+                    </div>
+                    
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-600">Monthly Growth</span>
+                        <span class="text-green-600 font-medium">+12%</span>
+                    </div>
+                    
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-600">Staff Efficiency</span>
+                        <div class="flex items-center">
+                            <div class="w-20 bg-gray-200 rounded-full h-2 mr-2">
+                                <div class="bg-blue-500 h-2 rounded-full" style="width: 88%"></div>
+                            </div>
+                            <span class="text-sm font-medium text-gray-900">88%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
