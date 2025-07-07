@@ -65,6 +65,30 @@
         {% endif %}
     </div>
 
+    <!-- Location Fields -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+            <label for="{{ form.county.id_for_label }}" class="block text-sm font-medium text-white mb-2">
+                County <span class="text-red-300">*</span>
+            </label>
+            {{ form.county }}
+            {% if form.county.errors %}
+                <div class="text-red-300 text-sm mt-1">{{ form.county.errors.0 }}</div>
+            {% endif %}
+        </div>
+        <div>
+            <label for="{{ form.subcounty.id_for_label }}" class="block text-sm font-medium text-white mb-2">
+                Subcounty <span class="text-red-300">*</span>
+            </label>
+            <select name="{{ form.subcounty.name }}" id="{{ form.subcounty.id_for_label }}" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 bg-white">
+                <option value="">Select Subcounty</option>
+            </select>
+            {% if form.subcounty.errors %}
+                <div class="text-red-300 text-sm mt-1">{{ form.subcounty.errors.0 }}</div>
+            {% endif %}
+        </div>
+    </div>
+
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
             <label for="{{ form.password1.id_for_label }}" class="block text-sm font-medium text-white mb-2">
@@ -248,6 +272,91 @@
         const institutionFields = document.getElementById('institution-fields');
         const patientNotice = document.getElementById('patient-notice');
         const approvalNotice = document.getElementById('approval-notice');
+        
+        // County and subcounty handling
+        const countySelect = document.getElementById('{{ form.county.id_for_label }}');
+        const subcountySelect = document.getElementById('{{ form.subcounty.id_for_label }}');
+        
+        const subcounties = {
+            'nairobi': [
+                ['westlands', 'Westlands'],
+                ['dagoretti_north', 'Dagoretti North'],
+                ['dagoretti_south', 'Dagoretti South'],
+                ['langata', 'Lang\'ata'],
+                ['kibra', 'Kibra'],
+                ['roysambu', 'Roysambu'],
+                ['kasarani', 'Kasarani'],
+                ['ruaraka', 'Ruaraka'],
+                ['embakasi_south', 'Embakasi South'],
+                ['embakasi_north', 'Embakasi North'],
+                ['embakasi_central', 'Embakasi Central'],
+                ['embakasi_east', 'Embakasi East'],
+                ['embakasi_west', 'Embakasi West'],
+                ['makadara', 'Makadara'],
+                ['kamukunji', 'Kamukunji'],
+                ['starehe', 'Starehe'],
+                ['mathare', 'Mathare'],
+            ],
+            'kiambu': [
+                ['gatundu_south', 'Gatundu South'],
+                ['gatundu_north', 'Gatundu North'],
+                ['juja', 'Juja'],
+                ['thika_town', 'Thika Town'],
+                ['ruiru', 'Ruiru'],
+                ['githunguri', 'Githunguri'],
+                ['kiambu_town', 'Kiambu Town'],
+                ['kiambaa', 'Kiambaa'],
+                ['kabete', 'Kabete'],
+                ['kikuyu', 'Kikuyu'],
+                ['limuru', 'Limuru'],
+                ['lari', 'Lari'],
+            ],
+            'nakuru': [
+                ['nakuru_town_east', 'Nakuru Town East'],
+                ['nakuru_town_west', 'Nakuru Town West'],
+                ['bahati', 'Bahati'],
+                ['subukia', 'Subukia'],
+                ['rongai', 'Rongai'],
+                ['molo', 'Molo'],
+                ['njoro', 'Njoro'],
+                ['naivasha', 'Naivasha'],
+                ['gilgil', 'Gilgil'],
+                ['kuresoi_south', 'Kuresoi South'],
+                ['kuresoi_north', 'Kuresoi North'],
+            ],
+            'mombasa': [
+                ['changamwe', 'Changamwe'],
+                ['jomba', 'Jomba'],
+                ['kisauni', 'Kisauni'],
+                ['nyali', 'Nyali'],
+                ['likoni', 'Likoni'],
+                ['mvita', 'Mvita'],
+            ],
+            // Add default subcounties for other counties
+            'default': [
+                ['central', 'Central'],
+                ['north', 'North'],
+                ['south', 'South'],
+                ['east', 'East'],
+                ['west', 'West'],
+            ]
+        };
+
+        function updateSubcounties() {
+            const selectedCounty = countySelect.value;
+            const subcountyOptions = subcounties[selectedCounty] || subcounties['default'];
+            
+            // Clear existing options
+            subcountySelect.innerHTML = '<option value="">Select Subcounty</option>';
+            
+            // Add new options
+            subcountyOptions.forEach(function(subcounty) {
+                const option = document.createElement('option');
+                option.value = subcounty[0];
+                option.textContent = subcounty[1];
+                subcountySelect.appendChild(option);
+            });
+        }
 
         function toggleFields() {
             const userType = userTypeSelect.value;
@@ -269,8 +378,12 @@
             }
         }
 
+        countySelect.addEventListener('change', updateSubcounties);
         userTypeSelect.addEventListener('change', toggleFields);
-        toggleFields(); // Initial call
+        
+        // Initial calls
+        updateSubcounties();
+        toggleFields();
     });
 </script>
 {% endblock %}
