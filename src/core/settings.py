@@ -42,8 +42,7 @@ INSTALLED_APPS = [
     # Third party apps
     'allauth',
     'allauth.account',
-    'allauth.socialaccount',
-    'allauth.socialaccount.providers.google',
+    'allauth.socialaccount',    
     'widget_tweaks',
 
     # Custom apps
@@ -147,7 +146,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 SITE_ID = 1
 
 # Custom User Model
-AUTH_USER_MODEL = 'accounts.User'
+AUTH_USER_MODEL = 'acc.User'
 
 # Django Allauth Configuration
 AUTHENTICATION_BACKENDS = [
