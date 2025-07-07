@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}HavenMED - Healthcare Meets Opportunity{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1D4ED8',
+                        secondary: '#3B82F6'
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo -->
+                <div class="flex items-center">
+                    <img src="{% static 'images/logo.png' %}" alt="HavenMED Logo" class="h-10 mr-3">
+                    <span class="text-2xl font-bold text-primary">HavenMED</span>
+                </div>
+
+                <!-- Desktop Navigation -->
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="#" class="text-gray-700 hover:text-primary transition duration-300">Home</a>
+                    <a href="#features" class="text-gray-700 hover:text-primary transition duration-300">Features</a>
+                    <a href="#about" class="text-gray-700 hover:text-primary transition duration-300">About</a>
+                    <a href="#contact" class="text-gray-700 hover:text-primary transition duration-300">Contact</a>
+                    <button class="bg-primary text-white px-6 py-2 rounded-full hover:bg-blue-700 transition duration-300 transform hover:scale-105">
+                        Join as Provider
+                    </button>
+                </div>
+
+                <!-- Mobile menu button -->
+                <div class="md:hidden">
+                    <button id="mobile-menu-button" class="text-gray-700 hover:text-primary focus:outline-none">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mobile Navigation -->
+            <div id="mobile-menu" class="md:hidden hidden bg-white border-t">
+                <div class="px-2 pt-2 pb-3 space-y-1">
+                    <a href="#" class="block px-3 py-2 text-gray-700 hover:text-primary">Home</a>
+                    <a href="#features" class="block px-3 py-2 text-gray-700 hover:text-primary">Features</a>
+                    <a href="#about" class="block px-3 py-2 text-gray-700 hover:text-primary">About</a>
+                    <a href="#contact" class="block px-3 py-2 text-gray-700 hover:text-primary">Contact</a>
+                    <button class="w-full mt-2 bg-primary text-white px-4 py-2 rounded-full hover:bg-blue-700 transition duration-300">
+                        Join as Provider
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main>
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <!-- Logo and Description -->
+                <div class="md:col-span-2">
+                    <div class="flex items-center mb-4">
+                        <img src="{% static 'images/logo.png' %}" alt="HavenMED Logo" class="h-8 mr-3">
+                        <span class="text-2xl font-bold">HavenMED</span>
+                    </div>
+                    <p class="text-gray-300 mb-4">
+                        Connecting patients with underutilized, verified healthcare professionals — anytime, anywhere.
+                    </p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-300 hover:text-white transition duration-300">
+                            <i class="fab fa-facebook-f text-xl"></i>
+                        </a>
+                        <a href="#" class="text-gray-300 hover:text-white transition duration-300">
+                            <i class="fab fa-twitter text-xl"></i>
+                        </a>
+                        <a href="#" class="text-gray-300 hover:text-white transition duration-300">
+                            <i class="fab fa-linkedin-in text-xl"></i>
+                        </a>
+                        <a href="#" class="text-gray-300 hover:text-white transition duration-300">
+                            <i class="fab fa-instagram text-xl"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Quick Links -->
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Quick Links</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-300 hover:text-white transition duration-300">About</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-white transition duration-300">Contact</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-white transition duration-300">Join Us</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-white transition duration-300">Terms</a></li>
+                    </ul>
+                </div>
+
+                <!-- Services -->
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Services</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-300 hover:text-white transition duration-300">Home Visits</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-white transition duration-300">Virtual Consultations</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-white transition duration-300">Provider Network</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-white transition duration-300">Clinic Partnerships</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="border-t border-gray-800 mt-8 pt-8 text-center">
+                <p class="text-gray-300">
+                    © 2024 HavenMED. All rights reserved. Transforming healthcare access in Kenya.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Mobile Menu Toggle Script -->
+    <script>
+        document.getElementById('mobile-menu-button').addEventListener('click', function() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        });
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
