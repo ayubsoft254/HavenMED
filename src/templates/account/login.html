@@ -1,0 +1,67 @@
+{% extends "account/base.html" %}
+
+{% block title %}Sign In - HavenMED{% endblock %}
+
+{% block auth_content %}
+<div class="text-center mb-6">
+    <h2 class="text-2xl font-bold text-white mb-2">Welcome Back</h2>
+    <p class="text-white/80">Sign in to your HavenMED account</p>
+</div>
+
+<form method="post" class="space-y-4">
+    {% csrf_token %}
+    
+    <div>
+        <label for="{{ form.login.id_for_label }}" class="block text-sm font-medium text-white mb-2">
+            Email Address
+        </label>
+        {{ form.login }}
+        {% if form.login.errors %}
+            <div class="text-red-300 text-sm mt-1">{{ form.login.errors.0 }}</div>
+        {% endif %}
+    </div>
+
+    <div>
+        <label for="{{ form.password.id_for_label }}" class="block text-sm font-medium text-white mb-2">
+            Password
+        </label>
+        {{ form.password }}
+        {% if form.password.errors %}
+            <div class="text-red-300 text-sm mt-1">{{ form.password.errors.0 }}</div>
+        {% endif %}
+    </div>
+
+    <div class="flex items-center justify-between">
+        <div class="flex items-center">
+            {{ form.remember }}
+            <label for="{{ form.remember.id_for_label }}" class="ml-2 text-sm text-white/80">
+                Remember me
+            </label>
+        </div>
+        <a href="{% url 'account_reset_password' %}" class="text-sm text-white/80 hover:text-white transition duration-300">
+            Forgot password?
+        </a>
+    </div>
+
+    {% if form.non_field_errors %}
+        <div class="bg-red-500/20 border border-red-300/30 rounded-lg p-4">
+            <div class="text-red-300 text-sm">
+                {{ form.non_field_errors.0 }}
+            </div>
+        </div>
+    {% endif %}
+
+    <button type="submit" class="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 px-4 rounded-lg hover:from-blue-600 hover:to-blue-700 transition duration-300 transform hover:scale-105 font-semibold shadow-lg">
+        Sign In
+    </button>
+</form>
+
+<div class="text-center mt-6">
+    <p class="text-white/80 text-sm">
+        Don't have an account? 
+        <a href="{% url 'account_signup' %}" class="text-white hover:text-blue-200 transition duration-300 font-medium">
+            Sign Up
+        </a>
+    </p>
+</div>
+{% endblock %}
