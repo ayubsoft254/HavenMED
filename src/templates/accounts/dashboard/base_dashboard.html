@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Dashboard Header -->
+        <div class="mb-8">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                <div class="flex items-center space-x-4 mb-4 md:mb-0">
+                    <div class="relative">
+                        <img src="{{ user.get_profile_photo_url }}" 
+                             alt="{{ user.get_display_name }}" 
+                             class="w-16 h-16 rounded-full object-cover border-4 border-white shadow-lg">
+                        <div class="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 border-2 border-white rounded-full flex items-center justify-center">
+                            <i class="fas fa-check text-white text-xs"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900">Welcome back, {{ user.get_display_name }}</h1>
+                        <p class="text-gray-600">{{ user.get_user_type_display }}</p>
+                        {% if user.county %}
+                            <p class="text-sm text-gray-500">
+                                <i class="fas fa-map-marker-alt mr-1"></i>
+                                {{ user.subcounty }}, {{ user.get_county_display }}
+                            </p>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-3">
+                    <!-- Search Bar -->
+                    <div class="relative">
+                        <input type="text" 
+                               id="dashboard-search" 
+                               placeholder="Search providers, services..." 
+                               class="w-64 pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <div class="absolute left-3 top-1/2 transform -translate-y-1/2">
+                            <i class="fas fa-search text-gray-400"></i>
+                        </div>
+                    </div>
+                    
+                    <!-- Notifications -->
+                    <button class="relative p-2 text-gray-600 hover:text-blue-600 transition-colors duration-200">
+                        <i class="fas fa-bell text-xl"></i>
+                        <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">3</span>
+                    </button>
+                    
+                    <!-- Profile Menu -->
+                    <div class="relative">
+                        <button id="profile-menu-button" class="flex items-center space-x-2 bg-white rounded-lg px-3 py-2 shadow-sm border border-gray-200 hover:bg-gray-50 transition-colors duration-200">
+                            <span class="text-sm font-medium text-gray-700">Settings</span>
+                            <i class="fas fa-chevron-down text-gray-400"></i>
+                        </button>
+                        
+                        <div id="profile-menu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                            <div class="py-1">
+                                <a href="{% url 'profile_edit' %}" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-user-edit mr-3"></i>Edit Profile
+                                </a>
+                                <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-cog mr-3"></i>Settings
+                                </a>
+                                <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-question-circle mr-3"></i>Help
+                                </a>
+                                <div class="border-t border-gray-100"></div>
+                                <a href="{% url 'account_logout' %}" class="flex items-center px-4 py-2 text-sm text-red-700 hover:bg-red-50">
+                                    <i class="fas fa-sign-out-alt mr-3"></i>Logout
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Navigation Tabs -->
+        <div class="mb-8">
+            <nav class="flex space-x-1 bg-white rounded-lg p-1 shadow-sm border border-gray-200">
+                {% block dashboard_nav %}
+                <!-- Override in child templates -->
+                {% endblock %}
+            </nav>
+        </div>
+
+        <!-- Dashboard Content -->
+        {% block dashboard_content %}
+        <!-- Override in child templates -->
+        {% endblock %}
+    </div>
+</div>
+
+<!-- Search Results Modal -->
+<div id="search-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+    <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-96 overflow-hidden">
+        <div class="p-4 border-b border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-900">Search Results</h3>
+        </div>
+        <div id="search-results" class="p-4 max-h-80 overflow-y-auto">
+            <!-- Search results will be loaded here -->
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Profile menu toggle
+    const profileMenuButton = document.getElementById('profile-menu-button');
+    const profileMenu = document.getElementById('profile-menu');
+    
+    profileMenuButton.addEventListener('click', function() {
+        profileMenu.classList.toggle('hidden');
+    });
+    
+    // Close profile menu when clicking outside
+    document.addEventListener('click', function(event) {
+        if (!profileMenuButton.contains(event.target) && !profileMenu.contains(event.target)) {
+            profileMenu.classList.add('hidden');
+        }
+    });
+    
+    // Dashboard search functionality
+    const searchInput = document.getElementById('dashboard-search');
+    const searchModal = document.getElementById('search-modal');
+    const searchResults = document.getElementById('search-results');
+    let searchTimeout;
+    
+    searchInput.addEventListener('input', function() {
+        const query = this.value.trim();
+        
+        if (query.length < 2) {
+            searchModal.classList.add('hidden');
+            return;
+        }
+        
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            performSearch(query);
+        }, 300);
+    });
+    
+    function performSearch(query) {
+        fetch(`{% url 'dashboard_search' %}?q=${encodeURIComponent(query)}`, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            displaySearchResults(data);
+            searchModal.classList.remove('hidden');
+        })
+        .catch(error => {
+            console.error('Search error:', error);
+        });
+    }
+    
+    function displaySearchResults(data) {
+        let html = '';
+        
+        if (data.doctors.length > 0) {
+            html += '<div class="mb-4"><h4 class="font-semibold text-gray-900 mb-2">Healthcare Professionals</h4>';
+            data.doctors.forEach(doctor => {
+                html += `
+                    <div class="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded-lg cursor-pointer">
+                        <img src="${doctor.photo_url}" alt="${doctor.name}" class="w-10 h-10 rounded-full object-cover">
+                        <div class="flex-1">
+                            <p class="font-medium text-gray-900">${doctor.name}</p>
+                            <p class="text-sm text-gray-600">${doctor.specialization}</p>
+                            <p class="text-xs text-gray-500">${doctor.location}</p>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-star text-yellow-400 text-sm mr-1"></i>
+                            <span class="text-sm text-gray-600">${doctor.rating}</span>
+                        </div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+        }
+        
+        if (data.institutions.length > 0) {
+            html += '<div><h4 class="font-semibold text-gray-900 mb-2">Healthcare Institutions</h4>';
+            data.institutions.forEach(institution => {
+                html += `
+                    <div class="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded-lg cursor-pointer">
+                        <img src="${institution.photo_url}" alt="${institution.name}" class="w-10 h-10 rounded-full object-cover">
+                        <div class="flex-1">
+                            <p class="font-medium text-gray-900">${institution.name}</p>
+                            <p class="text-sm text-gray-600">${institution.type}</p>
+                            <p class="text-xs text-gray-500">${institution.location}</p>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-star text-yellow-400 text-sm mr-1"></i>
+                            <span class="text-sm text-gray-600">${institution.rating}</span>
+                        </div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+        }
+        
+        if (html === '') {
+            html = '<p class="text-gray-600 text-center py-4">No results found for your search.</p>';
+        }
+        
+        searchResults.innerHTML = html;
+    }
+    
+    // Close search modal when clicking outside
+    searchModal.addEventListener('click', function(event) {
+        if (event.target === searchModal) {
+            searchModal.classList.add('hidden');
+        }
+    });
+});
+</script>
+{% endblock %}
