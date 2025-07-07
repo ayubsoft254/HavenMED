@@ -47,7 +47,7 @@ INSTALLED_APPS = [
 
     # Custom apps
     'landing',
-    'acc',
+    'accounts',
 ]
 
 MIDDLEWARE = [
@@ -146,7 +146,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 SITE_ID = 1
 
 # Custom User Model
-AUTH_USER_MODEL = 'acc.User'
+AUTH_USER_MODEL = 'accounts.User'
 
 # Django Allauth Configuration
 AUTHENTICATION_BACKENDS = [
@@ -161,9 +161,12 @@ ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
 ACCOUNT_CONFIRM_EMAIL_ON_GET = True
 ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 3
-ACCOUNT_LOGIN_ATTEMPTS_LIMIT = 5
-ACCOUNT_LOGIN_ATTEMPTS_TIMEOUT = 300  # 5 minutes
 ACCOUNT_PREVENT_ENUMERATION = False
+
+# Rate Limiting (Replaces ACCOUNT_LOGIN_ATTEMPTS_LIMIT/TIMEOUT)
+ACCOUNT_RATE_LIMITS = {
+    'login_failed': '5/5m',  # 5 attempts per 5 minutes
+}
 
 # URL Redirects
 LOGIN_URL = '/accounts/login/'
