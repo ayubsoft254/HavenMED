@@ -1,0 +1,361 @@
+{% extends "accounts/dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Healthcare Professional Dashboard - HavenMED{% endblock %}
+
+{% block dashboard_nav %}
+<a href="{% url 'healthcare_dashboard' %}" class="flex items-center px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-md">
+    <i class="fas fa-home mr-2"></i>Dashboard
+</a>
+<a href="#" class="flex items-center px-4 py-2 text-sm font-medium text-gray-600 hover:text-blue-600 hover:bg-gray-50 rounded-md">
+    <i class="fas fa-calendar-alt mr-2"></i>Appointments
+</a>
+<a href="#" class="flex items-center px-4 py-2 text-sm font-medium text-gray-600 hover:text-blue-600 hover:bg-gray-50 rounded-md">
+    <i class="fas fa-users mr-2"></i>Patients
+</a>
+<a href="#" class="flex items-center px-4 py-2 text-sm font-medium text-gray-600 hover:text-blue-600 hover:bg-gray-50 rounded-md">
+    <i class="fas fa-chart-bar mr-2"></i>Analytics
+</a>
+<a href="#" class="flex items-center px-4 py-2 text-sm font-medium text-gray-600 hover:text-blue-600 hover:bg-gray-50 rounded-md">
+    <i class="fas fa-cog mr-2"></i>Settings
+</a>
+{% endblock %}
+
+{% block dashboard_content %}
+<!-- Status Banner -->
+{% if not user.is_approved %}
+<div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-8">
+    <div class="flex items-center">
+        <i class="fas fa-clock text-yellow-500 mr-3"></i>
+        <div>
+            <h3 class="text-yellow-800 font-medium">Account Pending Approval</h3>
+            <p class="text-yellow-700 text-sm">Your account is currently under review. You'll receive an email notification once approved.</p>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Quick Stats -->
+<div class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
+    <div class="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-xl p-6 shadow-lg">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-blue-100 text-sm font-medium">Total Patients</p>
+                <p class="text-white text-3xl font-bold">{{ stats.total_patients }}</p>
+            </div>
+            <div class="bg-white/20 rounded-full p-3">
+                <i class="fas fa-users text-white text-xl"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-gradient-to-br from-green-500 to-green-600 text-white rounded-xl p-6 shadow-lg">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-green-100 text-sm font-medium">Today's Appointments</p>
+                <p class="text-white text-3xl font-bold">{{ stats.appointments_today }}</p>
+            </div>
+            <div class="bg-white/20 rounded-full p-3">
+                <i class="fas fa-calendar-day text-white text-xl"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-xl p-6 shadow-lg">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-purple-100 text-sm font-medium">This Week</p>
+                <p class="text-white text-3xl font-bold">{{ stats.appointments_this_week }}</p>
+            </div>
+            <div class="bg-white/20 rounded-full p-3">
+                <i class="fas fa-calendar-week text-white text-xl"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-xl p-6 shadow-lg">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-orange-100 text-sm font-medium">Total Consultations</p>
+                <p class="text-white text-3xl font-bold">{{ stats.total_consultations }}</p>
+            </div>
+            <div class="bg-white/20 rounded-full p-3">
+                <i class="fas fa-stethoscope text-white text-xl"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-gradient-to-br from-teal-500 to-teal-600 text-white rounded-xl p-6 shadow-lg">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-teal-100 text-sm font-medium">Monthly Revenue</p>
+                <p class="text-white text-3xl font-bold">KES {{ stats.revenue_this_month|floatformat:0 }}</p>
+            </div>
+            <div class="bg-white/20 rounded-full p-3">
+                <i class="fas fa-money-bill-wave text-white text-xl"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- Left Column - Appointments & Schedule -->
+    <div class="lg:col-span-2 space-y-8">
+        <!-- Today's Schedule -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-semibold text-gray-900">Today's Schedule</h3>
+                    <div class="flex items-center space-x-2">
+                        <button class="text-blue-600 hover:text-blue-700 text-sm font-medium">View Calendar</button>
+                        <button class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700">
+                            <i class="fas fa-plus mr-2"></i>Add Appointment
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="p-6">
+                {% if recent_appointments %}
+                    <div class="space-y-4">
+                        {% for appointment in recent_appointments %}
+                            <div class="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg border-l-4 border-blue-500">
+                                <div class="text-center">
+                                    <p class="text-sm font-medium text-gray-900">{{ appointment.time|time:"g:i A" }}</p>
+                                    <p class="text-xs text-gray-500">{{ appointment.duration }}min</p>
+                                </div>
+                                <img src="{{ appointment.patient.user.get_profile_photo_url }}" alt="{{ appointment.patient.user.get_display_name }}" class="w-12 h-12 rounded-full object-cover">
+                                <div class="flex-1">
+                                    <p class="font-medium text-gray-900">{{ appointment.patient.user.get_display_name }}</p>
+                                    <p class="text-sm text-gray-600">{{ appointment.appointment_type }}</p>
+                                    <p class="text-sm text-gray-500">{{ appointment.notes|truncatewords:8 }}</p>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    {% if appointment.is_virtual %}
+                                        <button class="bg-green-100 text-green-600 px-3 py-1 rounded-lg text-sm font-medium hover:bg-green-200">
+                                            <i class="fas fa-video mr-1"></i>Join Call
+                                        </button>
+                                    {% endif %}
+                                    <button class="text-gray-400 hover:text-gray-600">
+                                        <i class="fas fa-ellipsis-h"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-8">
+                        <i class="fas fa-calendar-alt text-gray-300 text-4xl mb-4"></i>
+                        <p class="text-gray-600 mb-4">No appointments scheduled for today</p>
+                        <button class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
+                            Set Your Availability
+                        </button>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Pending Requests -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+            <div class="p-6 border-b border-gray-200">
+                <h3 class="text-lg font-semibold text-gray-900">Pending Appointment Requests</h3>
+            </div>
+            <div class="p-6">
+                {% if pending_requests %}
+                    <div class="space-y-4">
+                        {% for request in pending_requests %}
+                            <div class="flex items-center space-x-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                                <img src="{{ request.patient.user.get_profile_photo_url }}" alt="{{ request.patient.user.get_display_name }}" class="w-12 h-12 rounded-full object-cover">
+                                <div class="flex-1">
+                                    <p class="font-medium text-gray-900">{{ request.patient.user.get_display_name }}</p>
+                                    <p class="text-sm text-gray-600">Requested: {{ request.preferred_date }} at {{ request.preferred_time }}</p>
+                                    <p class="text-sm text-gray-500">{{ request.reason|truncatewords:10 }}</p>
+                                    <p class="text-xs text-gray-400">{{ request.created_at|timesince }} ago</p>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <button class="bg-green-600 text-white px-3 py-1 rounded-lg text-sm font-medium hover:bg-green-700">
+                                        Accept
+                                    </button>
+                                    <button class="bg-gray-200 text-gray-600 px-3 py-1 rounded-lg text-sm font-medium hover:bg-gray-300">
+                                        Reschedule
+                                    </button>
+                                    <button class="bg-red-100 text-red-600 px-3 py-1 rounded-lg text-sm font-medium hover:bg-red-200">
+                                        Decline
+                                    </button>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-8">
+                        <i class="fas fa-clock text-gray-300 text-4xl mb-4"></i>
+                        <p class="text-gray-600">No pending requests</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column - Profile & Tools -->
+    <div class="space-y-8">
+        <!-- Professional Summary -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+            <div class="p-6 border-b border-gray-200">
+                <h3 class="text-lg font-semibold text-gray-900">Professional Summary</h3>
+            </div>
+            <div class="p-6">
+                <div class="text-center mb-6">
+                    <img src="{{ user.get_profile_photo_url }}" alt="{{ user.get_display_name }}" class="w-20 h-20 rounded-full object-cover mx-auto mb-4 border-4 border-blue-100">
+                    <h4 class="font-semibold text-gray-900">Dr. {{ user.get_display_name }}</h4>
+                    <p class="text-gray-600">{{ profile.get_specialization_display }}</p>
+                    <div class="flex items-center justify-center mt-2">
+                        <div class="flex items-center">
+                            {% for i in "12345" %}
+                                <i class="fas fa-star {% if profile.average_rating >= forloop.counter %}text-yellow-400{% else %}text-gray-300{% endif %} text-sm"></i>
+                            {% endfor %}
+                            <span class="ml-2 text-sm text-gray-600">({{ profile.average_rating }}/5.0)</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-600">Experience</span>
+                        <span class="text-gray-900 font-medium">{{ profile.years_of_experience }} years</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-600">License No.</span>
+                        <span class="text-gray-900 font-medium">{{ profile.kmpdu_license_number }}</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-600">Consultation Fee</span>
+                        <span class="text-green-600 font-medium">KES {{ profile.consultation_fee|default:"Not set" }}</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-600">Availability</span>
+                        <span class="{% if profile.is_available %}text-green-600{% else %}text-red-600{% endif %} font-medium">
+                            {% if profile.is_available %}Available{% else %}Unavailable{% endif %}
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="mt-6 pt-6 border-t border-gray-200">
+                    <h5 class="font-medium text-gray-900 mb-2">Services Offered</h5>
+                    <div class="space-y-2">
+                        {% if profile.available_for_virtual_consultations %}
+                            <div class="flex items-center text-sm text-gray-600">
+                                <i class="fas fa-video text-green-500 mr-2"></i>
+                                Virtual Consultations
+                            </div>
+                        {% endif %}
+                        {% if profile.available_for_home_visits %}
+                            <div class="flex items-center text-sm text-gray-600">
+                                <i class="fas fa-home text-blue-500 mr-2"></i>
+                                Home Visits
+                            </div>
+                        {% endif %}
+                        <div class="flex items-center text-sm text-gray-600">
+                            <i class="fas fa-clinic-medical text-purple-500 mr-2"></i>
+                            In-Person Consultations
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-6">
+                    <button class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors duration-200">
+                        Edit Profile
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+            <div class="p-6 border-b border-gray-200">
+                <h3 class="text-lg font-semibold text-gray-900">Quick Actions</h3>
+            </div>
+            <div class="p-6">
+                <div class="space-y-3">
+                    <button class="w-full flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200">
+                        <div class="flex items-center">
+                            <i class="fas fa-calendar-plus text-blue-500 mr-3"></i>
+                            <span class="text-gray-700">Block Time Slot</span>
+                        </div>
+                        <i class="fas fa-chevron-right text-gray-400"></i>
+                    </button>
+                    
+                    <button class="w-full flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200">
+                        <div class="flex items-center">
+                            <i class="fas fa-user-plus text-green-500 mr-3"></i>
+                            <span class="text-gray-700">Add New Patient</span>
+                        </div>
+                        <i class="fas fa-chevron-right text-gray-400"></i>
+                    </button>
+                    
+                    <button class="w-full flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200">
+                        <div class="flex items-center">
+                            <i class="fas fa-prescription-bottle text-purple-500 mr-3"></i>
+                            <span class="text-gray-700">Write Prescription</span>
+                        </div>
+                        <i class="fas fa-chevron-right text-gray-400"></i>
+                    </button>
+                    
+                    <button class="w-full flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200">
+                        <div class="flex items-center">
+                            <i class="fas fa-chart-line text-orange-500 mr-3"></i>
+                            <span class="text-gray-700">View Reports</span>
+                        </div>
+                        <i class="fas fa-chevron-right text-gray-400"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Reviews -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-semibold text-gray-900">Recent Reviews</h3>
+                    <span class="text-sm text-gray-500">{{ profile.total_reviews }} total</span>
+                </div>
+            </div>
+            <div class="p-6">
+                <!-- Sample reviews - replace with actual data -->
+                <div class="space-y-4">
+                    <div class="border-b border-gray-100 pb-4 last:border-b-0 last:pb-0">
+                        <div class="flex items-center mb-2">
+                            <div class="flex items-center">
+                                {% for i in "12345" %}
+                                    <i class="fas fa-star text-yellow-400 text-sm"></i>
+                                {% endfor %}
+                            </div>
+                            <span class="ml-2 text-sm text-gray-600">2 days ago</span>
+                        </div>
+                        <p class="text-gray-700 text-sm">"Excellent consultation. Very professional and thorough explanation."</p>
+                        <p class="text-gray-500 text-xs mt-1">- Patient J.M.</p>
+                    </div>
+                    
+                    <div class="border-b border-gray-100 pb-4 last:border-b-0 last:pb-0">
+                        <div class="flex items-center mb-2">
+                            <div class="flex items-center">
+                                {% for i in "12345" %}
+                                    <i class="fas fa-star {% if forloop.counter <= 4 %}text-yellow-400{% else %}text-gray-300{% endif %} text-sm"></i>
+                                {% endfor %}
+                            </div>
+                            <span class="ml-2 text-sm text-gray-600">1 week ago</span>
+                        </div>
+                        <p class="text-gray-700 text-sm">"Great experience with virtual consultation. Highly recommend!"</p>
+                        <p class="text-gray-500 text-xs mt-1">- Patient A.K.</p>
+                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    <button class="w-full text-blue-600 hover:text-blue-700 text-sm font-medium">
+                        View All Reviews
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
