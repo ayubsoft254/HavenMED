@@ -39,12 +39,12 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.sites',
 
-    # Allauth apps
+    # Third party apps
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
-    # Optional social providers
     'allauth.socialaccount.providers.google',
+    'widget_tweaks',
 
     # Custom apps
     'landing',
