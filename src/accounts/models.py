@@ -2,6 +2,116 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+# Kenya Counties and Subcounties data
+KENYA_COUNTIES = [
+    ('baringo', 'Baringo'),
+    ('bomet', 'Bomet'),
+    ('bungoma', 'Bungoma'),
+    ('busia', 'Busia'),
+    ('elgeyo_marakwet', 'Elgeyo-Marakwet'),
+    ('embu', 'Embu'),
+    ('garissa', 'Garissa'),
+    ('homa_bay', 'Homa Bay'),
+    ('isiolo', 'Isiolo'),
+    ('kajiado', 'Kajiado'),
+    ('kakamega', 'Kakamega'),
+    ('kericho', 'Kericho'),
+    ('kiambu', 'Kiambu'),
+    ('kilifi', 'Kilifi'),
+    ('kirinyaga', 'Kirinyaga'),
+    ('kisii', 'Kisii'),
+    ('kisumu', 'Kisumu'),
+    ('kitui', 'Kitui'),
+    ('kwale', 'Kwale'),
+    ('laikipia', 'Laikipia'),
+    ('lamu', 'Lamu'),
+    ('machakos', 'Machakos'),
+    ('makueni', 'Makueni'),
+    ('mandera', 'Mandera'),
+    ('marsabit', 'Marsabit'),
+    ('meru', 'Meru'),
+    ('migori', 'Migori'),
+    ('mombasa', 'Mombasa'),
+    ('murang_a', 'Murang\'a'),
+    ('nairobi', 'Nairobi'),
+    ('nakuru', 'Nakuru'),
+    ('nandi', 'Nandi'),
+    ('narok', 'Narok'),
+    ('nyamira', 'Nyamira'),
+    ('nyandarua', 'Nyandarua'),
+    ('nyeri', 'Nyeri'),
+    ('samburu', 'Samburu'),
+    ('siaya', 'Siaya'),
+    ('taita_taveta', 'Taita-Taveta'),
+    ('tana_river', 'Tana River'),
+    ('tharaka_nithi', 'Tharaka-Nithi'),
+    ('trans_nzoia', 'Trans Nzoia'),
+    ('turkana', 'Turkana'),
+    ('uasin_gishu', 'Uasin Gishu'),
+    ('vihiga', 'Vihiga'),
+    ('wajir', 'Wajir'),
+    ('west_pokot', 'West Pokot'),
+]
+
+# Subcounties mapping (sample - you can expand this)
+KENYA_SUBCOUNTIES = {
+    'nairobi': [
+        ('westlands', 'Westlands'),
+        ('dagoretti_north', 'Dagoretti North'),
+        ('dagoretti_south', 'Dagoretti South'),
+        ('langata', 'Lang\'ata'),
+        ('kibra', 'Kibra'),
+        ('roysambu', 'Roysambu'),
+        ('kasarani', 'Kasarani'),
+        ('ruaraka', 'Ruaraka'),
+        ('embakasi_south', 'Embakasi South'),
+        ('embakasi_north', 'Embakasi North'),
+        ('embakasi_central', 'Embakasi Central'),
+        ('embakasi_east', 'Embakasi East'),
+        ('embakasi_west', 'Embakasi West'),
+        ('makadara', 'Makadara'),
+        ('kamukunji', 'Kamukunji'),
+        ('starehe', 'Starehe'),
+        ('mathare', 'Mathare'),
+    ],
+    'kiambu': [
+        ('gatundu_south', 'Gatundu South'),
+        ('gatundu_north', 'Gatundu North'),
+        ('juja', 'Juja'),
+        ('thika_town', 'Thika Town'),
+        ('ruiru', 'Ruiru'),
+        ('githunguri', 'Githunguri'),
+        ('kiambu_town', 'Kiambu Town'),
+        ('kiambaa', 'Kiambaa'),
+        ('kabete', 'Kabete'),
+        ('kikuyu', 'Kikuyu'),
+        ('limuru', 'Limuru'),
+        ('lari', 'Lari'),
+    ],
+    'nakuru': [
+        ('nakuru_town_east', 'Nakuru Town East'),
+        ('nakuru_town_west', 'Nakuru Town West'),
+        ('bahati', 'Bahati'),
+        ('subukia', 'Subukia'),
+        ('rongai', 'Rongai'),
+        ('molo', 'Molo'),
+        ('njoro', 'Njoro'),
+        ('naivasha', 'Naivasha'),
+        ('gilgil', 'Gilgil'),
+        ('kuresoi_south', 'Kuresoi South'),
+        ('kuresoi_north', 'Kuresoi North'),
+    ],
+    'mombasa': [
+        ('changamwe', 'Changamwe'),
+        ('jomba', 'Jomba'),
+        ('kisauni', 'Kisauni'),
+        ('nyali', 'Nyali'),
+        ('likoni', 'Likoni'),
+        ('mvita', 'Mvita'),
+    ],
+    # Add more counties and their subcounties as needed
+}
+
 class User(AbstractUser):
     USER_TYPE_CHOICES = [
         ('patient', 'Patient'),
@@ -16,6 +126,10 @@ class User(AbstractUser):
     is_approved = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    
+    # Location fields
+    county = models.CharField(max_length=50, choices=KENYA_COUNTIES, blank=True)
+    subcounty = models.CharField(max_length=50, blank=True)
     
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
