@@ -65,46 +65,48 @@
     </style>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
-<body class="bg-gray-50">
+<body class="bg-gray-50 pt-16">
     <!-- Navigation -->
-    <nav id="navbar" class="bg-white/95 backdrop-blur-sm shadow-lg sticky top-0 z-50 border-b border-slate-200 transition-transform duration-300">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
-                <!-- Logo -->
-                <div class="flex items-center">
-                    <img src="{% static 'logo.png' %}" alt="HavenMED Logo" class="h-10 mr-3">
-                    <span class="text-2xl font-black bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">HavenMED</span>
+    <nav id="navbar" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300">
+        <div class="bg-white/10 backdrop-blur-md border-b border-white/20">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <!-- Logo -->
+                    <div class="flex items-center">
+                        <img src="{% static 'logo.png' %}" alt="HavenMED Logo" class="h-10 mr-3">
+                        <span class="text-2xl font-black text-white drop-shadow-lg">HavenMED</span>
+                    </div>
+
+                    <!-- Desktop Navigation -->
+                    <div class="hidden md:flex items-center space-x-8">
+                        <a href="{% url 'landing_page' %}" class="text-white/90 hover:text-white transition duration-300 font-medium drop-shadow">Home</a>
+                        <a href="#features" class="text-white/90 hover:text-white transition duration-300 font-medium drop-shadow">Features</a>
+                        <a href="{% url 'about_page' %}" class="text-white/90 hover:text-white transition duration-300 font-medium drop-shadow">About</a>
+                        <a href="#contact" class="text-white/90 hover:text-white transition duration-300 font-medium drop-shadow">Contact</a>
+                        <button class="bg-white/20 backdrop-blur-sm border border-white/30 text-white px-6 py-2 rounded-full hover:bg-white/30 transition duration-300 transform hover:scale-105 font-semibold shadow-lg">
+                            Join as Provider
+                        </button>
+                    </div>
+
+                    <!-- Mobile menu button -->
+                    <div class="md:hidden">
+                        <button id="mobile-menu-button" class="text-white/90 hover:text-white focus:outline-none drop-shadow">
+                            <i class="fas fa-bars text-xl"></i>
+                        </button>
+                    </div>
                 </div>
 
-                <!-- Desktop Navigation -->
-                <div class="hidden md:flex items-center space-x-8">
-                    <a href="{% url 'landing_page' %}" class="text-slate-700 hover:text-blue-600 transition duration-300 font-medium">Home</a>
-                    <a href="#features" class="text-slate-700 hover:text-blue-600 transition duration-300 font-medium">Features</a>
-                    <a href="{% url 'about_page' %}" class="text-slate-700 hover:text-blue-600 transition duration-300 font-medium">About</a>
-                    <a href="#contact" class="text-slate-700 hover:text-blue-600 transition duration-300 font-medium">Contact</a>
-                    <button class="bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-6 py-2 rounded-full hover:from-blue-700 hover:to-cyan-700 transition duration-300 transform hover:scale-105 font-semibold shadow-lg">
-                        Join as Provider
-                    </button>
-                </div>
-
-                <!-- Mobile menu button -->
-                <div class="md:hidden">
-                    <button id="mobile-menu-button" class="text-slate-700 hover:text-blue-600 focus:outline-none">
-                        <i class="fas fa-bars text-xl"></i>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Mobile Navigation -->
-            <div id="mobile-menu" class="md:hidden hidden bg-white/95 backdrop-blur-sm border-t border-slate-200">
-                <div class="px-2 pt-2 pb-3 space-y-1">
-                    <a href="{% url 'landing_page' %}" class="block px-3 py-2 text-slate-700 hover:text-blue-600 font-medium">Home</a>
-                    <a href="#features" class="block px-3 py-2 text-slate-700 hover:text-blue-600 font-medium">Features</a>
-                    <a href="{% url 'about_page' %}" class="block px-3 py-2 text-slate-700 hover:text-blue-600 font-medium">About</a>
-                    <a href="#contact" class="block px-3 py-2 text-slate-700 hover:text-blue-600 font-medium">Contact</a>
-                    <button class="w-full mt-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-4 py-2 rounded-full hover:from-blue-700 hover:to-cyan-700 transition duration-300 font-semibold">
-                        Join as Provider
-                    </button>
+                <!-- Mobile Navigation -->
+                <div id="mobile-menu" class="md:hidden hidden border-t border-white/20">
+                    <div class="bg-white/10 backdrop-blur-md px-2 pt-2 pb-3 space-y-1">
+                        <a href="{% url 'landing_page' %}" class="block px-3 py-2 text-white/90 hover:text-white font-medium">Home</a>
+                        <a href="#features" class="block px-3 py-2 text-white/90 hover:text-white font-medium">Features</a>
+                        <a href="{% url 'about_page' %}" class="block px-3 py-2 text-white/90 hover:text-white font-medium">About</a>
+                        <a href="#contact" class="block px-3 py-2 text-white/90 hover:text-white font-medium">Contact</a>
+                        <button class="w-full mt-2 bg-white/20 backdrop-blur-sm border border-white/30 text-white px-4 py-2 rounded-full hover:bg-white/30 transition duration-300 font-semibold">
+                            Join as Provider
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -197,22 +199,22 @@
             });
         });
 
-        // Navbar hide/show on scroll
-        let lastScrollY = window.scrollY;
+        // Navbar background adaptation on scroll
         const navbar = document.getElementById('navbar');
+        const navbarContent = navbar.querySelector('div');
         
         window.addEventListener('scroll', () => {
-            const currentScrollY = window.scrollY;
+            const scrollY = window.scrollY;
             
-            if (currentScrollY > lastScrollY && currentScrollY > 100) {
-                // Scrolling down & past 100px
-                navbar.style.transform = 'translateY(-100%)';
+            if (scrollY > 50) {
+                // More opaque background when scrolled
+                navbarContent.style.background = 'rgba(255, 255, 255, 0.25)';
+                navbarContent.style.borderBottomColor = 'rgba(255, 255, 255, 0.3)';
             } else {
-                // Scrolling up or at top
-                navbar.style.transform = 'translateY(0)';
+                // More transparent when at top
+                navbarContent.style.background = 'rgba(255, 255, 255, 0.1)';
+                navbarContent.style.borderBottomColor = 'rgba(255, 255, 255, 0.2)';
             }
-            
-            lastScrollY = currentScrollY;
         });
 
         // Close mobile menu when clicking outside or on a link
