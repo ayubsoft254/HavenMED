@@ -3,65 +3,189 @@
 {% block title %}Sign In - HavenMED{% endblock %}
 
 {% block auth_content %}
-<div class="text-center mb-6">
-    <h2 class="text-2xl font-bold text-white mb-2">Welcome Back</h2>
-    <p class="text-white/80">Sign in to your HavenMED account</p>
-</div>
-
-<form method="post" class="space-y-4">
-    {% csrf_token %}
+<!-- Header Section with animated background -->
+<div class="text-center mb-8 relative">
+    <!-- Animated background elements -->
+    <div class="absolute inset-0 overflow-hidden pointer-events-none">
+        <div class="absolute top-0 left-1/4 w-32 h-32 bg-blue-500/10 rounded-full blur-xl animate-pulse"></div>
+        <div class="absolute bottom-0 right-1/4 w-24 h-24 bg-cyan-500/10 rounded-full blur-xl animate-pulse animation-delay-1000"></div>
+    </div>
     
-    <div>
-        <label for="{{ form.login.id_for_label }}" class="block text-sm font-medium text-white mb-2">
-            Email Address
-        </label>
-        {{ form.login }}
-        {% if form.login.errors %}
-            <div class="text-red-300 text-sm mt-1">{{ form.login.errors.0 }}</div>
-        {% endif %}
-    </div>
-
-    <div>
-        <label for="{{ form.password.id_for_label }}" class="block text-sm font-medium text-white mb-2">
-            Password
-        </label>
-        {{ form.password }}
-        {% if form.password.errors %}
-            <div class="text-red-300 text-sm mt-1">{{ form.password.errors.0 }}</div>
-        {% endif %}
-    </div>
-
-    <div class="flex items-center justify-between">
-        <div class="flex items-center">
-            {{ form.remember }}
-            <label for="{{ form.remember.id_for_label }}" class="ml-2 text-sm text-white/80">
-                Remember me
-            </label>
+    <!-- Icon with glow effect -->
+    <div class="relative mb-4">
+        <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl shadow-lg mb-4">
+            <i class="fas fa-shield-heart text-white text-2xl"></i>
         </div>
-        <a href="{% url 'account_reset_password' %}" class="text-sm text-white/80 hover:text-white transition duration-300">
-            Forgot password?
-        </a>
+        <div class="absolute inset-0 bg-blue-500/30 rounded-2xl blur-xl animate-pulse"></div>
     </div>
-
-    {% if form.non_field_errors %}
-        <div class="bg-red-500/20 border border-red-300/30 rounded-lg p-4">
-            <div class="text-red-300 text-sm">
-                {{ form.non_field_errors.0 }}
-            </div>
-        </div>
-    {% endif %}
-
-    <button type="submit" class="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-3 px-4 rounded-lg hover:from-blue-600 hover:to-blue-700 transition duration-300 transform hover:scale-105 font-semibold shadow-lg">
-        Sign In
-    </button>
-</form>
-
-<div class="text-center mt-6">
-    <p class="text-white/80 text-sm">
-        Don't have an account? 
-        <a href="{% url 'account_signup' %}" class="text-white hover:text-blue-200 transition duration-300 font-medium">
-            Sign Up
-        </a>
-    </p>
+    
+    <h2 class="text-3xl font-bold bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent mb-2">
+        Welcome Back
+    </h2>
+    <p class="text-white/70 text-lg">Secure access to your healthcare platform</p>
 </div>
+
+<!-- Form Container with glass morphism -->
+<div class="relative">
+    <!-- Decorative elements -->
+    <div class="absolute -top-4 -left-4 w-8 h-8 border-l-2 border-t-2 border-blue-400/50 rounded-tl-lg"></div>
+    <div class="absolute -top-4 -right-4 w-8 h-8 border-r-2 border-t-2 border-blue-400/50 rounded-tr-lg"></div>
+    <div class="absolute -bottom-4 -left-4 w-8 h-8 border-l-2 border-b-2 border-blue-400/50 rounded-bl-lg"></div>
+    <div class="absolute -bottom-4 -right-4 w-8 h-8 border-r-2 border-b-2 border-blue-400/50 rounded-br-lg"></div>
+    
+    <form method="post" class="space-y-6 relative z-10">
+        {% csrf_token %}
+        
+        <!-- Email Field -->
+        <div class="space-y-2">
+            <label for="{{ form.login.id_for_label }}" class="block text-sm font-semibold text-white/90 mb-2 flex items-center">
+                <i class="fas fa-envelope mr-2 text-blue-400"></i>
+                Email Address
+            </label>
+            <div class="relative group">
+                {{ form.login }}
+                <div class="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+                <div class="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/50">
+                    <i class="fas fa-at text-sm"></i>
+                </div>
+            </div>
+            {% if form.login.errors %}
+                <div class="flex items-center text-red-400 text-sm mt-2">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                    {{ form.login.errors.0 }}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Password Field -->
+        <div class="space-y-2">
+            <label for="{{ form.password.id_for_label }}" class="block text-sm font-semibold text-white/90 mb-2 flex items-center">
+                <i class="fas fa-lock mr-2 text-blue-400"></i>
+                Password
+            </label>
+            <div class="relative group">
+                {{ form.password }}
+                <div class="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+                <div class="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/50">
+                    <i class="fas fa-key text-sm"></i>
+                </div>
+                <button type="button" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/50 hover:text-white transition-colors duration-300" onclick="togglePassword()">
+                    <i class="fas fa-eye" id="toggleIcon"></i>
+                </button>
+            </div>
+            {% if form.password.errors %}
+                <div class="flex items-center text-red-400 text-sm mt-2">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                    {{ form.password.errors.0 }}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Remember Me & Forgot Password -->
+        <div class="flex items-center justify-between">
+            <div class="flex items-center group">
+                <div class="relative">
+                    {{ form.remember }}
+                    <div class="absolute inset-0 bg-blue-500/20 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                </div>
+                <label for="{{ form.remember.id_for_label }}" class="ml-3 text-sm text-white/80 cursor-pointer group-hover:text-white transition-colors duration-300">
+                    Keep me signed in
+                </label>
+            </div>
+            <a href="{% url 'account_reset_password' %}" class="text-sm text-blue-400 hover:text-blue-300 transition duration-300 flex items-center group">
+                <span>Forgot password?</span>
+                <i class="fas fa-arrow-right ml-1 text-xs group-hover:translate-x-1 transition-transform duration-300"></i>
+            </a>
+        </div>
+
+        <!-- Error Messages -->
+        {% if form.non_field_errors %}
+            <div class="bg-red-500/10 border border-red-400/30 rounded-xl p-4 backdrop-blur-sm">
+                <div class="flex items-center text-red-400 text-sm">
+                    <i class="fas fa-exclamation-circle mr-2"></i>
+                    {{ form.non_field_errors.0 }}
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- Submit Button -->
+        <button type="submit" class="group relative w-full overflow-hidden bg-gradient-to-r from-blue-500 via-blue-600 to-cyan-500 text-white py-4 px-6 rounded-xl hover:from-blue-600 hover:via-blue-700 hover:to-cyan-600 transition-all duration-500 transform hover:scale-[1.02] font-semibold shadow-2xl hover:shadow-blue-500/25">
+            <!-- Button background animation -->
+            <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+            
+            <!-- Button content -->
+            <div class="relative flex items-center justify-center">
+                <i class="fas fa-sign-in-alt mr-2"></i>
+                <span>Access Dashboard</span>
+                <i class="fas fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform duration-300"></i>
+            </div>
+        </button>
+    </form>
+</div>
+
+<!-- Sign Up Link -->
+<div class="text-center mt-8 pt-6 border-t border-white/10">
+    <p class="text-white/70 text-sm mb-2">New to HavenMED?</p>
+    <a href="{% url 'account_signup' %}" class="inline-flex items-center text-blue-400 hover:text-blue-300 transition duration-300 font-medium group">
+        <span>Create your account</span>
+        <i class="fas fa-user-plus ml-2 group-hover:scale-110 transition-transform duration-300"></i>
+    </a>
+</div>
+
+<!-- Custom Styles -->
+<style>
+    /* Custom input styling */
+    #id_login, #id_password {
+        @apply w-full pl-10 pr-4 py-4 bg-white/5 border border-white/20 rounded-xl text-white placeholder-white/50 backdrop-blur-sm transition-all duration-300;
+        @apply focus:bg-white/10 focus:border-blue-400/50 focus:outline-none focus:ring-2 focus:ring-blue-500/30;
+    }
+    
+    #id_remember {
+        @apply w-4 h-4 bg-white/10 border-2 border-white/30 rounded text-blue-500 focus:ring-blue-500/30 focus:ring-2 focus:ring-offset-0 transition-all duration-300;
+    }
+    
+    /* Animation delays */
+    .animation-delay-1000 {
+        animation-delay: 1s;
+    }
+    
+    /* Hover glow effects */
+    .group:hover .absolute.inset-0 {
+        box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+    }
+</style>
+
+<!-- JavaScript for password toggle -->
+<script>
+    function togglePassword() {
+        const passwordField = document.getElementById('id_password');
+        const toggleIcon = document.getElementById('toggleIcon');
+        
+        if (passwordField.type === 'password') {
+            passwordField.type = 'text';
+            toggleIcon.classList.remove('fa-eye');
+            toggleIcon.classList.add('fa-eye-slash');
+        } else {
+            passwordField.type = 'password';
+            toggleIcon.classList.remove('fa-eye-slash');
+            toggleIcon.classList.add('fa-eye');
+        }
+    }
+    
+    // Add floating animation to background elements
+    document.addEventListener('DOMContentLoaded', function() {
+        const floatingElements = document.querySelectorAll('.animate-pulse');
+        floatingElements.forEach(el => {
+            el.style.animation = 'float 6s ease-in-out infinite';
+        });
+    });
+</script>
+
+<style>
+    @keyframes float {
+        0%, 100% { transform: translateY(0px) rotate(0deg); }
+        33% { transform: translateY(-10px) rotate(1deg); }
+        66% { transform: translateY(5px) rotate(-1deg); }
+    }
+</style>
 {% endblock %}
