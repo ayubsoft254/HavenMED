@@ -85,20 +85,6 @@
         #logo-text {
             transition: color 0.3s ease, text-shadow 0.3s ease;
         }
-        
-        #nav-button, .nav-button-mobile {
-            transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
-        }
-        
-        /* Patient signup button adaptive styling */
-        .patient-signup-btn {
-            transition: all 0.3s ease;
-        }
-        
-        .patient-signup-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
-        }
     </style>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
@@ -136,22 +122,11 @@
                             </div>
                         {% else %}
                             <!-- Guest User Menu -->
-                            <!-- Patient Account Button with Discount Badge -->
-                            <div class="relative">
-                                <a href="{% url 'account_signup' %}" class="patient-signup-btn bg-gradient-to-r from-green-500 to-emerald-600 text-white px-4 py-2 rounded-full hover:from-green-600 hover:to-emerald-700 transition duration-300 transform hover:scale-105 font-semibold shadow-lg flex items-center gap-2">
-                                    <i class="fas fa-user-plus text-sm"></i>
-                                    <span>Patient Account</span>
-                                    <div class="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full font-bold animate-pulse">
-                                        15% OFF
-                                    </div>
-                                </a>
-                            </div>
-                            
-                            <a href="{% url 'account_signup' %}" id="nav-button" class="bg-white/20 backdrop-blur-sm border border-white/30 text-white px-4 py-2 rounded-full hover:bg-white/30 transition duration-300 transform hover:scale-105 font-semibold shadow-lg">
-                                Join as Provider
+                            <a href="{% url 'account_signup' %}" class="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-2 rounded-full hover:from-blue-600 hover:to-blue-700 transition duration-300 transform hover:scale-105 font-semibold shadow-lg">
+                                <i class="fas fa-user-plus mr-2"></i>Sign Up
                             </a>
                             
-                            <a href="{% url 'account_login' %}" class="bg-blue-500/80 backdrop-blur-sm border border-blue-400/30 text-white px-4 py-2 rounded-full hover:bg-blue-600/80 transition duration-300 transform hover:scale-105 font-semibold shadow-lg">
+                            <a href="{% url 'account_login' %}" class="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-2 rounded-full hover:from-blue-600 hover:to-blue-700 transition duration-300 transform hover:scale-105 font-semibold shadow-lg">
                                 <i class="fas fa-sign-in-alt mr-1"></i>Login
                             </a>
                         {% endif %}
@@ -186,22 +161,11 @@
                             </div>
                         {% else %}
                             <!-- Mobile Guest Menu -->
-                            <!-- Mobile Patient Account Button -->
-                            <div class="relative mt-2">
-                                <a href="{% url 'account_signup' %}" class="flex items-center justify-center gap-2 w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white px-4 py-2 rounded-full hover:from-green-600 hover:to-emerald-700 transition duration-300 font-semibold shadow-lg">
-                                    <i class="fas fa-user-plus text-sm"></i>
-                                    <span>Patient Account</span>
-                                </a>
-                                <div class="absolute -top-1 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full font-bold animate-pulse">
-                                    15% OFF
-                                </div>
-                            </div>
-                            
-                            <a href="{% url 'account_signup' %}" class="nav-button-mobile w-full mt-2 bg-white/20 backdrop-blur-sm border border-white/30 text-white px-4 py-2 rounded-full hover:bg-white/30 transition duration-300 font-semibold block text-center">
-                                Join as Provider
+                            <a href="{% url 'account_signup' %}" class="w-full mt-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-2 rounded-full hover:from-blue-600 hover:to-blue-700 transition duration-300 font-semibold block text-center">
+                                <i class="fas fa-user-plus mr-2"></i>Sign Up
                             </a>
                             
-                            <a href="{% url 'account_login' %}" class="w-full mt-2 bg-blue-500/80 backdrop-blur-sm border border-blue-400/30 text-white px-4 py-2 rounded-full hover:bg-blue-600/80 transition duration-300 font-semibold block text-center">
+                            <a href="{% url 'account_login' %}" class="w-full mt-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-2 rounded-full hover:from-blue-600 hover:to-blue-700 transition duration-300 font-semibold block text-center">
                                 <i class="fas fa-sign-in-alt mr-1"></i>Login
                             </a>
                         {% endif %}
@@ -310,7 +274,6 @@
         
         function updateNavbarStyle() {
             const scrollY = window.scrollY;
-            const viewportHeight = window.innerHeight;
             
             // Get the current section under the navbar
             const sections = document.querySelectorAll('section');
@@ -351,18 +314,6 @@
                     link.style.color = 'rgba(255, 255, 255, 0.9)';
                     link.style.textShadow = '0 1px 2px rgba(0, 0, 0, 0.3)';
                 });
-                
-                if (navButton) {
-                    navButton.style.background = 'rgba(255, 255, 255, 0.2)';
-                    navButton.style.borderColor = 'rgba(255, 255, 255, 0.3)';
-                    navButton.style.color = 'white';
-                }
-                
-                if (navButtonMobile) {
-                    navButtonMobile.style.background = 'rgba(255, 255, 255, 0.2)';
-                    navButtonMobile.style.borderColor = 'rgba(255, 255, 255, 0.3)';
-                    navButtonMobile.style.color = 'white';
-                }
             } else {
                 // Light background - use dark text
                 navbarContent.style.background = scrollY > 50 ? 'rgba(255, 255, 255, 0.95)' : 'rgba(255, 255, 255, 0.85)';
@@ -375,18 +326,6 @@
                     link.style.color = '#475569';
                     link.style.textShadow = 'none';
                 });
-                
-                if (navButton) {
-                    navButton.style.background = 'linear-gradient(to right, #3b82f6, #06b6d4)';
-                    navButton.style.borderColor = 'transparent';
-                    navButton.style.color = 'white';
-                }
-                
-                if (navButtonMobile) {
-                    navButtonMobile.style.background = 'linear-gradient(to right, #3b82f6, #06b6d4)';
-                    navButtonMobile.style.borderColor = 'transparent';
-                    navButtonMobile.style.color = 'white';
-                }
             }
         }
         
