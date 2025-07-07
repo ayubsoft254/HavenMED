@@ -5,6 +5,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}HavenMED - Healthcare Meets Opportunity{% endblock %}</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{% static 'logo.png' %}">
+    <link rel="shortcut icon" type="image/png" href="{% static 'logo.png' %}">
+    <link rel="apple-touch-icon" href="{% static 'logo.png' %}">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -104,7 +110,9 @@
                 <div class="flex justify-between items-center h-16">
                     <!-- Logo -->
                     <div class="flex items-center">
-                        <img src="{% static 'logo.png' %}" alt="HavenMED Logo" class="h-10 mr-3">
+                        <div class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-full p-1 mr-3">
+                            <img src="{% static 'logo.png' %}" alt="HavenMED Logo" class="h-8 w-8 rounded-full object-cover">
+                        </div>
                         <span id="logo-text" class="text-2xl font-black text-white drop-shadow-lg transition-colors duration-300">HavenMED</span>
                     </div>
 
@@ -180,7 +188,9 @@
                 <!-- Logo and Description -->
                 <div class="md:col-span-2">
                     <div class="flex items-center mb-4">
-                        <img src="{% static 'logo.png' %}" alt="HavenMED Logo" class="h-8 mr-3">
+                        <div class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-full p-1 mr-3">
+                            <img src="{% static 'logo.png' %}" alt="HavenMED Logo" class="h-6 w-6 rounded-full object-cover">
+                        </div>
                         <span class="text-2xl font-bold">HavenMED</span>
                     </div>
                     <p class="text-gray-300 mb-4">
