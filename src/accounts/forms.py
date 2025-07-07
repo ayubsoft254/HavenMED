@@ -1,6 +1,6 @@
 from django import forms
 from allauth.account.forms import SignupForm
-from .models import User, PatientProfile, HealthcareProfessionalProfile, InstitutionProfile
+from .models import User, PatientProfile, HealthcareProfessionalProfile, InstitutionProfile, KENYA_COUNTIES, KENYA_SUBCOUNTIES
 
 class CustomSignupForm(SignupForm):
     USER_TYPE_CHOICES = [
@@ -15,6 +15,17 @@ class CustomSignupForm(SignupForm):
     last_name = forms.CharField(max_length=30, required=True)
     phone_number = forms.CharField(max_length=15, required=True)
     user_type = forms.ChoiceField(choices=USER_TYPE_CHOICES, required=True)
+    
+    # Location fields
+    county = forms.ChoiceField(
+        choices=[('', 'Select County')] + KENYA_COUNTIES,
+        required=True
+    )
+    subcounty = forms.CharField(
+        max_length=50,
+        required=True,
+        widget=forms.Select(attrs={'id': 'id_subcounty'})
+    )
     
     # Healthcare Professional fields
     specialization = forms.ChoiceField(
@@ -43,9 +54,11 @@ class CustomSignupForm(SignupForm):
             })
         
         # Special styling for select fields
-        self.fields['user_type'].widget.attrs.update({
-            'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 bg-white'
-        })
+        for field_name in ['user_type', 'county', 'subcounty', 'specialization']:
+            if field_name in self.fields:
+                self.fields[field_name].widget.attrs.update({
+                    'class': 'w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 bg-white'
+                })
         
         # File input styling
         for field_name in ['national_id', 'kmpdu_license', 'medical_license']:
@@ -57,6 +70,15 @@ class CustomSignupForm(SignupForm):
     def clean(self):
         cleaned_data = super().clean()
         user_type = cleaned_data.get('user_type')
+        
+        # Validate location fields
+        county = cleaned_data.get('county')
+        subcounty = cleaned_data.get('subcounty')
+        
+        if not county:
+            self.add_error('county', 'Please select a county.')
+        if not subcounty:
+            self.add_error('subcounty', 'Please select a subcounty.')
         
         if user_type == 'healthcare_professional':
             required_fields = ['specialization', 'years_of_experience', 'kmpdu_license_number', 'national_id', 'kmpdu_license']
@@ -78,6 +100,8 @@ class CustomSignupForm(SignupForm):
         user.last_name = self.cleaned_data['last_name']
         user.phone_number = self.cleaned_data['phone_number']
         user.user_type = self.cleaned_data['user_type']
+        user.county = self.cleaned_data['county']
+        user.subcounty = self.cleaned_data['subcounty']
         user.save()
         
         # Save additional profile data
