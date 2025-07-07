@@ -178,7 +178,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # Custom signup forms
 ACCOUNT_FORMS = {
-    'signup': 'acc.forms.CustomSignupForm',
+    'signup': 'accounts.forms.CustomSignupForm',
 }
 
 # Message tags for Bootstrap/Tailwind compatibility
