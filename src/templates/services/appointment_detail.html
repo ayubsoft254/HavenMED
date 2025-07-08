@@ -1,0 +1,492 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Appointment Details - HavenMED{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">Appointment Details</h1>
+                    <p class="text-gray-600 mt-1">Appointment ID: {{ appointment.id }}</p>
+                </div>
+                <div class="flex items-center space-x-3">
+                    {% if appointment.status == 'paid' and appointment.appointment_type == 'virtual' %}
+                        <a href="{% url 'services:join_virtual_consultation' appointment.id %}" 
+                           class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors duration-200 flex items-center">
+                            <i class="fas fa-video mr-2"></i>Join Consultation
+                        </a>
+                    {% endif %}
+                    
+                    {% if appointment.can_be_cancelled %}
+                        <button onclick="cancelAppointment()" 
+                                class="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors duration-200 flex items-center">
+                            <i class="fas fa-times mr-2"></i>Cancel
+                        </button>
+                    {% endif %}
+                    
+                    <a href="{% url 'dashboard' %}" 
+                       class="bg-gray-600 text-white px-6 py-2 rounded-lg hover:bg-gray-700 transition-colors duration-200 flex items-center">
+                        <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Banner -->
+        <div class="mb-6">
+            <div class="bg-white rounded-lg shadow-sm border-l-4 
+                        {% if appointment.status == 'completed' %}border-green-500 bg-green-50
+                        {% elif appointment.status == 'confirmed' or appointment.status == 'paid' %}border-blue-500 bg-blue-50
+                        {% elif appointment.status == 'cancelled' %}border-red-500 bg-red-50
+                        {% elif appointment.status == 'pending' %}border-yellow-500 bg-yellow-50
+                        {% else %}border-gray-500 bg-gray-50{% endif %} p-4">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        {% if appointment.status == 'completed' %}
+                            <i class="fas fa-check-circle text-green-500 text-xl"></i>
+                        {% elif appointment.status == 'confirmed' or appointment.status == 'paid' %}
+                            <i class="fas fa-calendar-check text-blue-500 text-xl"></i>
+                        {% elif appointment.status == 'cancelled' %}
+                            <i class="fas fa-times-circle text-red-500 text-xl"></i>
+                        {% elif appointment.status == 'pending' %}
+                            <i class="fas fa-clock text-yellow-500 text-xl"></i>
+                        {% else %}
+                            <i class="fas fa-info-circle text-gray-500 text-xl"></i>
+                        {% endif %}
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-lg font-medium 
+                                   {% if appointment.status == 'completed' %}text-green-800
+                                   {% elif appointment.status == 'confirmed' or appointment.status == 'paid' %}text-blue-800
+                                   {% elif appointment.status == 'cancelled' %}text-red-800
+                                   {% elif appointment.status == 'pending' %}text-yellow-800
+                                   {% else %}text-gray-800{% endif %}">
+                            Status: {{ appointment.get_status_display }}
+                        </h3>
+                        <div class="text-sm 
+                                    {% if appointment.status == 'completed' %}text-green-600
+                                    {% elif appointment.status == 'confirmed' or appointment.status == 'paid' %}text-blue-600
+                                    {% elif appointment.status == 'cancelled' %}text-red-600
+                                    {% elif appointment.status == 'pending' %}text-yellow-600
+                                    {% else %}text-gray-600{% endif %}">
+                            {% if appointment.status == 'pending' %}
+                                Your appointment is pending confirmation from the healthcare provider.
+                            {% elif appointment.status == 'confirmed' %}
+                                Your appointment has been confirmed. Please make payment to secure your slot.
+                            {% elif appointment.status == 'paid' %}
+                                Payment received. Your appointment is confirmed and ready.
+                            {% elif appointment.status == 'completed' %}
+                                This appointment has been completed successfully.
+                            {% elif appointment.status == 'cancelled' %}
+                                This appointment has been cancelled.
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Left Column - Appointment Details -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Basic Information -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                    <div class="p-6 border-b border-gray-200">
+                        <h3 class="text-lg font-semibold text-gray-900">Appointment Information</h3>
+                    </div>
+                    <div class="p-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-600">Date & Time</label>
+                                <p class="text-lg font-semibold text-gray-900">
+                                    {{ appointment.appointment_date|date:"F j, Y" }} at {{ appointment.appointment_time|time:"g:i A" }}
+                                </p>
+                                <p class="text-sm text-gray-500">Duration: {{ appointment.duration_minutes }} minutes</p>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-600">Appointment Type</label>
+                                <div class="flex items-center mt-1">
+                                    {% if appointment.appointment_type == 'virtual' %}
+                                        <i class="fas fa-video text-green-500 mr-2"></i>
+                                        <span class="text-gray-900">Virtual Consultation</span>
+                                    {% elif appointment.appointment_type == 'home_visit' %}
+                                        <i class="fas fa-home text-blue-500 mr-2"></i>
+                                        <span class="text-gray-900">Home Visit</span>
+                                    {% else %}
+                                        <i class="fas fa-clinic-medical text-purple-500 mr-2"></i>
+                                        <span class="text-gray-900">In-Person</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-600">Service Type</label>
+                                <p class="text-gray-900">{{ appointment.service_type.name }}</p>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-600">Priority</label>
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                           {% if appointment.priority == 'urgent' %}bg-red-100 text-red-800
+                                           {% elif appointment.priority == 'emergency' %}bg-red-200 text-red-900
+                                           {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                    {{ appointment.get_priority_display }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Healthcare Provider Information -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                    <div class="p-6 border-b border-gray-200">
+                        <h3 class="text-lg font-semibold text-gray-900">Healthcare Provider</h3>
+                    </div>
+                    <div class="p-6">
+                        <div class="flex items-center space-x-4">
+                            <img src="{{ appointment.healthcare_professional.user.get_profile_photo_url }}" 
+                                 alt="{{ appointment.healthcare_professional.user.get_display_name }}" 
+                                 class="w-16 h-16 rounded-full object-cover border-4 border-blue-100">
+                            <div class="flex-1">
+                                <h4 class="text-xl font-semibold text-gray-900">
+                                    Dr. {{ appointment.healthcare_professional.user.get_display_name }}
+                                </h4>
+                                <p class="text-gray-600">{{ appointment.healthcare_professional.get_specialization_display }}</p>
+                                <div class="flex items-center mt-2">
+                                    <div class="flex items-center">
+                                        {% for i in "12345" %}
+                                            <i class="fas fa-star {% if appointment.healthcare_professional.average_rating >= forloop.counter %}text-yellow-400{% else %}text-gray-300{% endif %} text-sm"></i>
+                                        {% endfor %}
+                                    </div>
+                                    <span class="ml-2 text-sm text-gray-600">({{ appointment.healthcare_professional.average_rating }}/5.0)</span>
+                                </div>
+                                <p class="text-sm text-gray-500 mt-1">
+                                    {{ appointment.healthcare_professional.years_of_experience }} years of experience
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Medical Information -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                    <div class="p-6 border-b border-gray-200">
+                        <h3 class="text-lg font-semibold text-gray-900">Medical Information</h3>
+                    </div>
+                    <div class="p-6 space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600">Chief Complaint</label>
+                            <p class="text-gray-900 mt-1">{{ appointment.chief_complaint }}</p>
+                        </div>
+                        
+                        {% if appointment.symptoms %}
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600">Symptoms</label>
+                            <p class="text-gray-900 mt-1">{{ appointment.symptoms }}</p>
+                        </div>
+                        {% endif %}
+                        
+                        {% if appointment.current_medications %}
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600">Current Medications</label>
+                            <p class="text-gray-900 mt-1">{{ appointment.current_medications }}</p>
+                        </div>
+                        {% endif %}
+                        
+                        {% if appointment.allergies_notes %}
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600">Allergies</label>
+                            <p class="text-red-600 mt-1">{{ appointment.allergies_notes }}</p>
+                        </div>
+                        {% endif %}
+                        
+                        {% if appointment.medical_history_notes %}
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600">Medical History</label>
+                            <p class="text-gray-900 mt-1">{{ appointment.medical_history_notes }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if appointment.appointment_type == 'home_visit' and appointment.visit_address %}
+                <!-- Visit Location -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                    <div class="p-6 border-b border-gray-200">
+                        <h3 class="text-lg font-semibold text-gray-900">Visit Location</h3>
+                    </div>
+                    <div class="p-6 space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600">Address</label>
+                            <p class="text-gray-900 mt-1">{{ appointment.visit_address }}</p>
+                        </div>
+                        
+                        {% if appointment.visit_instructions %}
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600">Special Instructions</label>
+                            <p class="text-gray-900 mt-1">{{ appointment.visit_instructions }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if appointment.diagnosis or appointment.treatment_plan or appointment.prescription %}
+                <!-- Consultation Results (if completed) -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                    <div class="p-6 border-b border-gray-200">
+                        <h3 class="text-lg font-semibold text-gray-900">Consultation Results</h3>
+                    </div>
+                    <div class="p-6 space-y-4">
+                        {% if appointment.diagnosis %}
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600">Diagnosis</label>
+                            <p class="text-gray-900 mt-1">{{ appointment.diagnosis }}</p>
+                        </div>
+                        {% endif %}
+                        
+                        {% if appointment.treatment_plan %}
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600">Treatment Plan</label>
+                            <p class="text-gray-900 mt-1">{{ appointment.treatment_plan }}</p>
+                        </div>
+                        {% endif %}
+                        
+                        {% if appointment.prescription %}
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600">Prescription</label>
+                            <p class="text-gray-900 mt-1">{{ appointment.prescription }}</p>
+                        </div>
+                        {% endif %}
+                        
+                        {% if appointment.doctor_notes %}
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600">Doctor's Notes</label>
+                            <p class="text-gray-900 mt-1">{{ appointment.doctor_notes }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Right Column - Sidebar -->
+            <div class="space-y-6">
+                <!-- Payment Information -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                    <div class="p-6 border-b border-gray-200">
+                        <h3 class="text-lg font-semibold text-gray-900">Payment Information</h3>
+                    </div>
+                    <div class="p-6 space-y-4">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Consultation Fee</span>
+                            <span class="font-medium">KES {{ appointment.consultation_fee }}</span>
+                        </div>
+                        
+                        {% if appointment.additional_fees > 0 %}
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Additional Fees</span>
+                            <span class="font-medium">KES {{ appointment.additional_fees }}</span>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="border-t pt-4">
+                            <div class="flex justify-between">
+                                <span class="text-lg font-semibold">Total Amount</span>
+                                <span class="text-lg font-bold text-green-600">KES {{ appointment.total_amount }}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <div class="flex items-center">
+                                {% if appointment.is_paid %}
+                                    <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                    <span class="text-green-600 font-medium">Payment Completed</span>
+                                {% else %}
+                                    <i class="fas fa-exclamation-circle text-yellow-500 mr-2"></i>
+                                    <span class="text-yellow-600 font-medium">Payment Pending</span>
+                                {% endif %}
+                            </div>
+                            
+                            {% if appointment.paid_at %}
+                                <p class="text-sm text-gray-500 mt-1">
+                                    Paid on {{ appointment.paid_at|date:"F j, Y \a\t g:i A" }}
+                                </p>
+                            {% endif %}
+                        </div>
+                        
+                        {% if not appointment.is_paid and appointment.status == 'confirmed' %}
+                        <div class="mt-4">
+                            <a href="{% url 'services:payment_page' appointment.id %}" 
+                               class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors duration-200 text-center block">
+                                Make Payment
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Contact Information -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                    <div class="p-6 border-b border-gray-200">
+                        <h3 class="text-lg font-semibold text-gray-900">Contact Information</h3>
+                    </div>
+                    <div class="p-6 space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600">Patient Phone</label>
+                            <p class="text-gray-900">{{ appointment.patient_phone }}</p>
+                        </div>
+                        
+                        {% if appointment.patient_email %}
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600">Patient Email</label>
+                            <p class="text-gray-900">{{ appointment.patient_email }}</p>
+                        </div>
+                        {% endif %}
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600">Provider Contact</label>
+                            <p class="text-gray-900">{{ appointment.healthcare_professional.user.phone_number }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                {% if appointment.appointment_type == 'virtual' and appointment.google_meet_link %}
+                <!-- Virtual Meeting Information -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                    <div class="p-6 border-b border-gray-200">
+                        <h3 class="text-lg font-semibold text-gray-900">Virtual Meeting</h3>
+                    </div>
+                    <div class="p-6">
+                        <div class="text-center">
+                            <i class="fas fa-video text-green-500 text-3xl mb-3"></i>
+                            <p class="text-gray-600 mb-4">Your virtual consultation link is ready</p>
+                            
+                            {% if appointment.status == 'paid' %}
+                                <a href="{% url 'services:join_virtual_consultation' appointment.id %}" 
+                                   class="w-full bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 transition-colors duration-200 font-medium block">
+                                    <i class="fas fa-video mr-2"></i>Join Meeting
+                                </a>
+                            {% else %}
+                                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                                    <p class="text-yellow-800 text-sm">
+                                        Complete payment to access the meeting link
+                                    </p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Appointment Actions -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                    <div class="p-6 border-b border-gray-200">
+                        <h3 class="text-lg font-semibold text-gray-900">Actions</h3>
+                    </div>
+                    <div class="p-6 space-y-3">
+                        {% if appointment.can_be_cancelled %}
+                        <button onclick="cancelAppointment()" 
+                                class="w-full bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors duration-200">
+                            <i class="fas fa-times mr-2"></i>Cancel Appointment
+                        </button>
+                        {% endif %}
+                        
+                        <button class="w-full bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors duration-200">
+                            <i class="fas fa-download mr-2"></i>Download Receipt
+                        </button>
+                        
+                        {% if appointment.status == 'completed' and not appointment.patient_rating %}
+                        <button onclick="showRatingModal()" 
+                                class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors duration-200">
+                            <i class="fas fa-star mr-2"></i>Rate & Review
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cancel Appointment Modal -->
+<div id="cancelModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+        <div class="p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Cancel Appointment</h3>
+            <p class="text-gray-600 mb-4">Are you sure you want to cancel this appointment? This action cannot be undone.</p>
+            
+            <form id="cancelForm">
+                {% csrf_token %}
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-600 mb-2">Reason for cancellation</label>
+                    <textarea name="reason" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" rows="3" placeholder="Please provide a reason..."></textarea>
+                </div>
+                
+                <div class="flex space-x-3">
+                    <button type="button" onclick="closeCancelModal()" 
+                            class="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors duration-200">
+                        Keep Appointment
+                    </button>
+                    <button type="submit" 
+                            class="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors duration-200">
+                        Cancel Appointment
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function cancelAppointment() {
+    document.getElementById('cancelModal').classList.remove('hidden');
+}
+
+function closeCancelModal() {
+    document.getElementById('cancelModal').classList.add('hidden');
+}
+
+document.getElementById('cancelForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    
+    fetch("{% url 'services:cancel_appointment' appointment.id %}", {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Appointment cancelled successfully');
+            location.reload();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while cancelling the appointment');
+    });
+    
+    closeCancelModal();
+});
+
+// Close modal when clicking outside
+document.getElementById('cancelModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeCancelModal();
+    }
+});
+</script>
+{% endblock %}
