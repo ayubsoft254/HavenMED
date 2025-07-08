@@ -22,7 +22,8 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('allauth.urls')),
-    path('accounts/', include('accounts.urls')),  # Add this line for custom accounts URLs
+    path('accounts/', include('accounts.urls')),
+    path('services/', include('services.urls')),
     path('', include('landing.urls')),
 ] 
     
