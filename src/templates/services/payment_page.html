@@ -1,0 +1,331 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Payment - HavenMED{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50 py-8">
+    <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <nav class="flex items-center text-sm text-gray-500 mb-4">
+                <a href="{% url 'provider_directory' %}" class="hover:text-blue-600">Providers</a>
+                <i class="fas fa-chevron-right mx-2"></i>
+                <a href="{% url 'services:book_appointment' appointment.healthcare_professional.id %}" class="hover:text-blue-600">Book Appointment</a>
+                <i class="fas fa-chevron-right mx-2"></i>
+                <span class="text-gray-900">Payment</span>
+            </nav>
+            
+            <h1 class="text-3xl font-bold text-gray-900">Complete Your Payment</h1>
+            <p class="text-gray-600 mt-2">Secure your appointment with payment</p>
+        </div>
+
+        <!-- Appointment Summary -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+            <h3 class="text-lg font-semibold text-gray-900 mb-6">Appointment Summary</h3>
+            
+            <div class="flex items-center space-x-4 mb-6">
+                <img src="{{ appointment.healthcare_professional.user.get_profile_photo_url }}" 
+                     alt="{{ appointment.healthcare_professional.user.get_display_name }}" 
+                     class="w-12 h-12 rounded-full object-cover border-2 border-blue-100">
+                <div>
+                    <h4 class="font-medium text-gray-900">Dr. {{ appointment.healthcare_professional.user.get_display_name }}</h4>
+                    <p class="text-sm text-gray-600">{{ appointment.healthcare_professional.get_specialization_display }}</p>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div>
+                    <p class="text-sm text-gray-600">Service</p>
+                    <p class="font-medium text-gray-900">{{ appointment.service_type.name }}</p>
+                </div>
+                
+                <div>
+                    <p class="text-sm text-gray-600">Type</p>
+                    <p class="font-medium text-gray-900">
+                        {% if appointment.appointment_type == 'virtual' %}
+                            <i class="fas fa-video text-green-600 mr-1"></i>Virtual Consultation
+                        {% elif appointment.appointment_type == 'home_visit' %}
+                            <i class="fas fa-home text-blue-600 mr-1"></i>Home Visit
+                        {% else %}
+                            <i class="fas fa-clinic-medical text-purple-600 mr-1"></i>In-Person
+                        {% endif %}
+                    </p>
+                </div>
+                
+                <div>
+                    <p class="text-sm text-gray-600">Date & Time</p>
+                    <p class="font-medium text-gray-900">{{ appointment.appointment_date|date:"M d, Y" }} at {{ appointment.appointment_time|time:"g:i A" }}</p>
+                </div>
+                
+                <div>
+                    <p class="text-sm text-gray-600">Duration</p>
+                    <p class="font-medium text-gray-900">{{ appointment.duration_minutes }} minutes</p>
+                </div>
+            </div>
+            
+            {% if appointment.priority == 'urgent' %}
+                <div class="bg-orange-50 border border-orange-200 rounded-lg p-3 mb-6">
+                    <div class="flex items-center">
+                        <i class="fas fa-exclamation-triangle text-orange-600 mr-2"></i>
+                        <span class="text-orange-800 font-medium">Urgent Appointment</span>
+                    </div>
+                </div>
+            {% endif %}
+            
+            {% if appointment.appointment_type == 'home_visit' and appointment.visit_address %}
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    <h5 class="font-medium text-blue-900 mb-1">Visit Address</h5>
+                    <p class="text-blue-800 text-sm">{{ appointment.visit_address }}</p>
+                    {% if appointment.visit_instructions %}
+                        <p class="text-blue-700 text-sm mt-1"><strong>Instructions:</strong> {{ appointment.visit_instructions }}</p>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Payment Form -->
+        <form method="post" id="payment-form" class="space-y-6">
+            {% csrf_token %}
+            
+            <!-- Cost Breakdown -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-6">Payment Details</h3>
+                
+                <div class="space-y-3">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Consultation Fee</span>
+                        <span class="font-medium">KES {{ appointment.consultation_fee }}</span>
+                    </div>
+                    
+                    {% if appointment.additional_fees > 0 %}
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Additional Fees</span>
+                            <span class="font-medium">KES {{ appointment.additional_fees }}</span>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="border-t pt-3">
+                        <div class="flex justify-between text-xl font-bold">
+                            <span class="text-gray-900">Total Amount</span>
+                            <span class="text-green-600">KES {{ appointment.total_amount }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Method Selection -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-6">Select Payment Method</h3>
+                
+                <div class="space-y-4">
+                    <!-- M-Pesa -->
+                    <div class="payment-method border border-gray-200 rounded-lg p-4 cursor-pointer hover:border-green-500 hover:bg-green-50 transition-all duration-200">
+                        <input type="radio" name="payment_method" value="mpesa" class="hidden" id="mpesa">
+                        <label for="mpesa" class="cursor-pointer">
+                            <div class="flex items-center space-x-4">
+                                <div class="bg-green-100 p-3 rounded-full">
+                                    <i class="fas fa-mobile-alt text-green-600 text-xl"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <h4 class="font-medium text-gray-900">M-Pesa</h4>
+                                    <p class="text-sm text-gray-600">Pay with your M-Pesa mobile wallet</p>
+                                </div>
+                                <div class="text-green-600">
+                                    <i class="fas fa-check-circle text-xl"></i>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                    
+                    <!-- Credit/Debit Card -->
+                    <div class="payment-method border border-gray-200 rounded-lg p-4 cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-all duration-200">
+                        <input type="radio" name="payment_method" value="card" class="hidden" id="card">
+                        <label for="card" class="cursor-pointer">
+                            <div class="flex items-center space-x-4">
+                                <div class="bg-blue-100 p-3 rounded-full">
+                                    <i class="fas fa-credit-card text-blue-600 text-xl"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <h4 class="font-medium text-gray-900">Credit/Debit Card</h4>
+                                    <p class="text-sm text-gray-600">Pay with Visa, Mastercard, or other cards</p>
+                                </div>
+                                <div class="flex space-x-2">
+                                    <img src="{% static 'images/visa.png' %}" alt="Visa" class="h-6">
+                                    <img src="{% static 'images/mastercard.png' %}" alt="Mastercard" class="h-6">
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                    
+                    <!-- Bank Transfer -->
+                    <div class="payment-method border border-gray-200 rounded-lg p-4 cursor-pointer hover:border-purple-500 hover:bg-purple-50 transition-all duration-200">
+                        <input type="radio" name="payment_method" value="bank_transfer" class="hidden" id="bank_transfer">
+                        <label for="bank_transfer" class="cursor-pointer">
+                            <div class="flex items-center space-x-4">
+                                <div class="bg-purple-100 p-3 rounded-full">
+                                    <i class="fas fa-university text-purple-600 text-xl"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <h4 class="font-medium text-gray-900">Bank Transfer</h4>
+                                    <p class="text-sm text-gray-600">Transfer from your bank account</p>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- M-Pesa Details (Hidden by default) -->
+            <div id="mpesa-details" class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hidden">
+                <h3 class="text-lg font-semibold text-gray-900 mb-6">M-Pesa Payment Details</h3>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label for="phone_number" class="block text-sm font-medium text-gray-700 mb-2">M-Pesa Phone Number</label>
+                        <input type="tel" 
+                               name="phone_number" 
+                               id="phone_number"
+                               placeholder="0700000000"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                        <p class="text-sm text-gray-500 mt-1">Enter the phone number registered with M-Pesa</p>
+                    </div>
+                    
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                        <h4 class="font-medium text-green-900 mb-2">How M-Pesa Payment Works:</h4>
+                        <ol class="text-sm text-green-800 space-y-1">
+                            <li>1. Click "Pay Now" below</li>
+                            <li>2. You'll receive an M-Pesa prompt on your phone</li>
+                            <li>3. Enter your M-Pesa PIN to complete payment</li>
+                            <li>4. Your appointment will be confirmed automatically</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Security Notice -->
+            <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-green-100 p-2 rounded-full">
+                        <i class="fas fa-lock text-green-600"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-medium text-gray-900">Secure Payment</h4>
+                        <p class="text-sm text-gray-600">Your payment information is encrypted and secure. We do not store your payment details.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex justify-between items-center">
+                <a href="{% url 'services:book_appointment' appointment.healthcare_professional.id %}" 
+                   class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors duration-200">
+                    <i class="fas fa-arrow-left mr-2"></i>Back to Booking
+                </a>
+                
+                <button type="submit" 
+                        id="pay-button"
+                        class="px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <i class="fas fa-credit-card mr-2"></i>
+                    Pay KES {{ appointment.total_amount }}
+                </button>
+            </div>
+        </form>
+
+        <!-- Payment Terms -->
+        <div class="mt-8 text-center">
+            <p class="text-sm text-gray-500">
+                By proceeding with payment, you agree to our 
+                <a href="#" class="text-blue-600 hover:text-blue-700">Terms of Service</a> and 
+                <a href="#" class="text-blue-600 hover:text-blue-700">Privacy Policy</a>
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const paymentMethods = document.querySelectorAll('.payment-method');
+    const mpesaDetails = document.getElementById('mpesa-details');
+    const phoneNumberInput = document.getElementById('phone_number');
+    const payButton = document.getElementById('pay-button');
+    const paymentForm = document.getElementById('payment-form');
+    
+    // Handle payment method selection
+    paymentMethods.forEach(method => {
+        method.addEventListener('click', function() {
+            paymentMethods.forEach(m => {
+                m.classList.remove('border-green-500', 'bg-green-50', 'border-blue-500', 'bg-blue-50', 'border-purple-500', 'bg-purple-50');
+                m.classList.add('border-gray-200');
+            });
+            
+            const radio = this.querySelector('input[type="radio"]');
+            radio.checked = true;
+            
+            // Style selected method
+            if (radio.value === 'mpesa') {
+                this.classList.add('border-green-500', 'bg-green-50');
+                mpesaDetails.classList.remove('hidden');
+                phoneNumberInput.required = true;
+            } else if (radio.value === 'card') {
+                this.classList.add('border-blue-500', 'bg-blue-50');
+                mpesaDetails.classList.add('hidden');
+                phoneNumberInput.required = false;
+            } else if (radio.value === 'bank_transfer') {
+                this.classList.add('border-purple-500', 'bg-purple-50');
+                mpesaDetails.classList.add('hidden');
+                phoneNumberInput.required = false;
+            }
+            
+            updatePayButton();
+        });
+    });
+    
+    function updatePayButton() {
+        const selectedMethod = document.querySelector('input[name="payment_method"]:checked');
+        
+        if (selectedMethod) {
+            payButton.disabled = false;
+            
+            if (selectedMethod.value === 'mpesa') {
+                payButton.innerHTML = '<i class="fas fa-mobile-alt mr-2"></i>Pay with M-Pesa';
+                payButton.className = 'px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors duration-200';
+            } else if (selectedMethod.value === 'card') {
+                payButton.innerHTML = '<i class="fas fa-credit-card mr-2"></i>Pay with Card';
+                payButton.className = 'px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200';
+            } else if (selectedMethod.value === 'bank_transfer') {
+                payButton.innerHTML = '<i class="fas fa-university mr-2"></i>Pay with Bank Transfer';
+                payButton.className = 'px-8 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-colors duration-200';
+            }
+        } else {
+            payButton.disabled = true;
+        }
+    }
+    
+    // Handle form submission
+    paymentForm.addEventListener('submit', function(e) {
+        const selectedMethod = document.querySelector('input[name="payment_method"]:checked');
+        
+        if (!selectedMethod) {
+            e.preventDefault();
+            alert('Please select a payment method');
+            return;
+        }
+        
+        if (selectedMethod.value === 'mpesa' && !phoneNumberInput.value.trim()) {
+            e.preventDefault();
+            alert('Please enter your M-Pesa phone number');
+            phoneNumberInput.focus();
+            return;
+        }
+        
+        // Show loading state
+        payButton.disabled = true;
+        payButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
+    });
+    
+    // Set initial state
+    updatePayButton();
+});
+</script>
+{% endblock %}
