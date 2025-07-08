@@ -1,0 +1,461 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Healthcare Providers Directory - HavenMED{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50">
+    <!-- Hero Section -->
+    <section class="bg-gradient-to-r from-blue-600 to-purple-700 text-white py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center">
+                <h1 class="text-4xl md:text-5xl font-bold mb-4">Find Your Healthcare Provider</h1>
+                <p class="text-xl text-blue-100 mb-8">Connect with qualified, verified healthcare professionals across Kenya</p>
+                
+                <!-- Quick Stats -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
+                    <div class="bg-white/10 backdrop-blur-sm rounded-lg p-4">
+                        <div class="text-2xl font-bold">{{ stats.total_providers }}+</div>
+                        <div class="text-sm text-blue-100">Verified Providers</div>
+                    </div>
+                    <div class="bg-white/10 backdrop-blur-sm rounded-lg p-4">
+                        <div class="text-2xl font-bold">{{ stats.specializations_count }}+</div>
+                        <div class="text-sm text-blue-100">Specializations</div>
+                    </div>
+                    <div class="bg-white/10 backdrop-blur-sm rounded-lg p-4">
+                        <div class="text-2xl font-bold">{{ stats.counties_count }}+</div>
+                        <div class="text-sm text-blue-100">Counties Covered</div>
+                    </div>
+                    <div class="bg-white/10 backdrop-blur-sm rounded-lg p-4">
+                        <div class="text-2xl font-bold">{{ stats.avg_rating|floatformat:1 }}</div>
+                        <div class="text-sm text-blue-100">Average Rating</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Search and Filters Section -->
+    <section class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <form method="GET" class="space-y-4">
+                <!-- Search Bar -->
+                <div class="flex flex-col md:flex-row gap-4">
+                    <div class="flex-1">
+                        <div class="relative">
+                            <input type="text" 
+                                   name="q" 
+                                   value="{{ current_filters.search_query }}"
+                                   placeholder="Search by name, specialization, or keywords..."
+                                   class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        </div>
+                    </div>
+                    <button type="submit" 
+                            class="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium">
+                        <i class="fas fa-search mr-2"></i>Search
+                    </button>
+                </div>
+
+                <!-- Filters -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+                    <!-- County Filter -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">County</label>
+                        <select name="county" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="">All Counties</option>
+                            {% for county_code, county_name in counties %}
+                                <option value="{{ county_code }}" {% if current_filters.county == county_code %}selected{% endif %}>
+                                    {{ county_name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Specialization Filter -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Specialization</label>
+                        <select name="specialization" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="">All Specializations</option>
+                            {% for spec_code, spec_name in specializations %}
+                                <option value="{{ spec_code }}" {% if current_filters.specialization == spec_code %}selected{% endif %}>
+                                    {{ spec_name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Rating Filter -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Min Rating</label>
+                        <select name="min_rating" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="">Any Rating</option>
+                            <option value="4.5" {% if current_filters.min_rating == "4.5" %}selected{% endif %}>4.5+ Stars</option>
+                            <option value="4.0" {% if current_filters.min_rating == "4.0" %}selected{% endif %}>4.0+ Stars</option>
+                            <option value="3.5" {% if current_filters.min_rating == "3.5" %}selected{% endif %}>3.5+ Stars</option>
+                            <option value="3.0" {% if current_filters.min_rating == "3.0" %}selected{% endif %}>3.0+ Stars</option>
+                        </select>
+                    </div>
+
+                    <!-- Fee Filter -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Max Fee (KES)</label>
+                        <select name="max_fee" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="">Any Fee</option>
+                            <option value="1000" {% if current_filters.max_fee == "1000" %}selected{% endif %}>Up to 1,000</option>
+                            <option value="2000" {% if current_filters.max_fee == "2000" %}selected{% endif %}>Up to 2,000</option>
+                            <option value="3000" {% if current_filters.max_fee == "3000" %}selected{% endif %}>Up to 3,000</option>
+                            <option value="5000" {% if current_filters.max_fee == "5000" %}selected{% endif %}>Up to 5,000</option>
+                        </select>
+                    </div>
+
+                    <!-- Availability Filter -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Availability</label>
+                        <select name="availability" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="">All Types</option>
+                            <option value="virtual" {% if current_filters.availability == "virtual" %}selected{% endif %}>Virtual Consultations</option>
+                            <option value="home_visits" {% if current_filters.availability == "home_visits" %}selected{% endif %}>Home Visits</option>
+                            <option value="in_person" {% if current_filters.availability == "in_person" %}selected{% endif %}>In-Person</option>
+                        </select>
+                    </div>
+
+                    <!-- Sort Filter -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Sort By</label>
+                        <select name="sort" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="rating" {% if current_filters.sort_by == "rating" %}selected{% endif %}>Highest Rated</option>
+                            <option value="experience" {% if current_filters.sort_by == "experience" %}selected{% endif %}>Most Experienced</option>
+                            <option value="fee_low" {% if current_filters.sort_by == "fee_low" %}selected{% endif %}>Lowest Fee</option>
+                            <option value="fee_high" {% if current_filters.sort_by == "fee_high" %}selected{% endif %}>Highest Fee</option>
+                            <option value="name" {% if current_filters.sort_by == "name" %}selected{% endif %}>Name (A-Z)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Clear Filters -->
+                {% if current_filters.county or current_filters.specialization or current_filters.search_query or current_filters.min_rating or current_filters.max_fee or current_filters.availability %}
+                <div class="flex justify-end">
+                    <a href="{% url 'provider_directory' %}" 
+                       class="text-gray-600 hover:text-gray-800 text-sm font-medium">
+                        <i class="fas fa-times mr-1"></i>Clear all filters
+                    </a>
+                </div>
+                {% endif %}
+            </form>
+        </div>
+    </section>
+
+    <!-- Results Section -->
+    <section class="py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <!-- Results Header -->
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-900">Healthcare Providers</h2>
+                    <p class="text-gray-600">
+                        Showing {{ page_obj.start_index }}-{{ page_obj.end_index }} of {{ total_results }} providers
+                    </p>
+                </div>
+            </div>
+
+            {% if providers %}
+                <!-- Provider Cards Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
+                    {% for provider in providers %}
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-lg transition-all duration-300 overflow-hidden">
+                            <!-- Provider Image and Status -->
+                            <div class="relative">
+                                <img src="{{ provider.user.get_profile_photo_url }}" 
+                                     alt="{{ provider.user.get_display_name }}" 
+                                     class="w-full h-48 object-cover">
+                                <div class="absolute top-3 right-3">
+                                    {% if provider.is_available %}
+                                        <span class="bg-green-100 text-green-600 px-2 py-1 rounded-full text-xs font-medium">
+                                            <i class="fas fa-circle text-green-500 text-xs mr-1"></i>Available
+                                        </span>
+                                    {% else %}
+                                        <span class="bg-red-100 text-red-600 px-2 py-1 rounded-full text-xs font-medium">
+                                            <i class="fas fa-circle text-red-500 text-xs mr-1"></i>Busy
+                                        </span>
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- Quick View Button -->
+                                <div class="absolute top-3 left-3">
+                                    <button onclick="showQuickView({{ provider.id }})" 
+                                            class="bg-white/90 backdrop-blur-sm text-gray-700 p-2 rounded-full hover:bg-white transition-colors duration-200">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Provider Info -->
+                            <div class="p-6">
+                                <div class="mb-3">
+                                    <h3 class="text-lg font-semibold text-gray-900 mb-1">
+                                        Dr. {{ provider.user.get_display_name }}
+                                    </h3>
+                                    <p class="text-blue-600 font-medium">{{ provider.get_specialization_display }}</p>
+                                    <p class="text-sm text-gray-500">
+                                        <i class="fas fa-map-marker-alt mr-1"></i>
+                                        {% if provider.user.county %}
+                                            {{ provider.user.subcounty|default:"" }}{% if provider.user.subcounty %}, {% endif %}{{ provider.user.get_county_display }}
+                                        {% else %}
+                                            Location not specified
+                                        {% endif %}
+                                    </p>
+                                </div>
+
+                                <!-- Rating and Experience -->
+                                <div class="flex items-center justify-between mb-3">
+                                    <div class="flex items-center">
+                                        <div class="flex items-center">
+                                            {% for i in "12345" %}
+                                                <i class="fas fa-star {% if provider.average_rating >= forloop.counter %}text-yellow-400{% else %}text-gray-300{% endif %} text-sm"></i>
+                                            {% endfor %}
+                                        </div>
+                                        <span class="ml-2 text-sm text-gray-600">({{ provider.total_reviews }})</span>
+                                    </div>
+                                    <span class="text-sm text-gray-500">{{ provider.years_of_experience }} yrs exp</span>
+                                </div>
+
+                                <!-- Services Available -->
+                                <div class="flex flex-wrap gap-1 mb-4">
+                                    {% if provider.available_for_virtual_consultations %}
+                                        <span class="bg-green-100 text-green-600 px-2 py-1 rounded-lg text-xs font-medium">
+                                            <i class="fas fa-video mr-1"></i>Virtual
+                                        </span>
+                                    {% endif %}
+                                    {% if provider.available_for_home_visits %}
+                                        <span class="bg-blue-100 text-blue-600 px-2 py-1 rounded-lg text-xs font-medium">
+                                            <i class="fas fa-home mr-1"></i>Home Visit
+                                        </span>
+                                    {% endif %}
+                                    <span class="bg-purple-100 text-purple-600 px-2 py-1 rounded-lg text-xs font-medium">
+                                        <i class="fas fa-clinic-medical mr-1"></i>In-Person
+                                    </span>
+                                </div>
+
+                                <!-- Fee and Bio -->
+                                <div class="mb-4">
+                                    {% if provider.consultation_fee %}
+                                        <div class="text-sm text-gray-600 mb-2">
+                                            <span class="font-medium text-green-600">KES {{ provider.consultation_fee }}</span> per consultation
+                                        </div>
+                                    {% endif %}
+                                    {% if provider.bio %}
+                                        <p class="text-sm text-gray-600 line-clamp-2">{{ provider.bio|truncatewords:15 }}</p>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Action Buttons -->
+                                <div class="flex space-x-2">
+                                    <a href="{% url 'services:provider_detail' provider.id %}" 
+                                       class="flex-1 bg-gray-100 text-gray-700 text-center py-2 px-3 rounded-lg hover:bg-gray-200 transition-colors duration-200 text-sm font-medium">
+                                        View Profile
+                                    </a>
+                                    
+                                    {% if user.is_authenticated and user.user_type == 'patient' %}
+                                        <a href="{% url 'services:book_appointment' provider.id %}" 
+                                           class="flex-1 bg-blue-600 text-white text-center py-2 px-3 rounded-lg hover:bg-blue-700 transition-colors duration-200 text-sm font-medium">
+                                            <i class="fas fa-calendar-plus mr-1"></i>Book Now
+                                        </a>
+                                    {% else %}
+                                        <button onclick="showLoginPrompt()" 
+                                                class="flex-1 bg-blue-600 text-white text-center py-2 px-3 rounded-lg hover:bg-blue-700 transition-colors duration-200 text-sm font-medium">
+                                            <i class="fas fa-calendar-plus mr-1"></i>Book Now
+                                        </button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Pagination -->
+                {% if page_obj.has_other_pages %}
+                    <div class="flex items-center justify-center space-x-2">
+                        {% if page_obj.has_previous %}
+                            <a href="?page={{ page_obj.previous_page_number }}{% for key, value in current_filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
+                               class="bg-white border border-gray-300 text-gray-500 hover:bg-gray-50 px-3 py-2 rounded-lg transition-colors duration-200">
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                        {% endif %}
+
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                                <span class="bg-blue-600 text-white px-3 py-2 rounded-lg font-medium">{{ num }}</span>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                <a href="?page={{ num }}{% for key, value in current_filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
+                                   class="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 px-3 py-2 rounded-lg transition-colors duration-200">
+                                    {{ num }}
+                                </a>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if page_obj.has_next %}
+                            <a href="?page={{ page_obj.next_page_number }}{% for key, value in current_filters.items %}{% if value %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
+                               class="bg-white border border-gray-300 text-gray-500 hover:bg-gray-50 px-3 py-2 rounded-lg transition-colors duration-200">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        {% endif %}
+                    </div>
+                {% endif %}
+
+            {% else %}
+                <!-- No Results -->
+                <div class="text-center py-16">
+                    <i class="fas fa-search text-gray-300 text-6xl mb-4"></i>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-2">No providers found</h3>
+                    <p class="text-gray-600 mb-6">Try adjusting your search criteria or filters</p>
+                    <a href="{% url 'provider_directory' %}" 
+                       class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium">
+                        View All Providers
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </section>
+</div>
+
+<!-- Quick View Modal -->
+<div id="quickViewModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+    <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-96 overflow-y-auto">
+        <div id="quickViewContent">
+            <!-- Content will be loaded here -->
+        </div>
+    </div>
+</div>
+
+<!-- Login Prompt Modal -->
+<div id="loginPromptModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+        <div class="p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Login Required</h3>
+            <p class="text-gray-600 mb-6">Please log in as a patient to book appointments with healthcare providers.</p>
+            
+            <div class="flex space-x-3">
+                <button onclick="closeLoginPrompt()" 
+                        class="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors duration-200">
+                    Cancel
+                </button>
+                <a href="{% url 'account_login' %}" 
+                   class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors duration-200 text-center">
+                    Login
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function showQuickView(providerId) {
+    fetch(`/services/api/provider/${providerId}/info/`)
+        .then(response => response.json())
+        .then(data => {
+            const content = `
+                <div class="p-6">
+                    <div class="flex items-center space-x-4 mb-4">
+                        <img src="${data.profile_photo}" alt="${data.name}" class="w-16 h-16 rounded-full object-cover">
+                        <div>
+                            <h3 class="text-xl font-semibold text-gray-900">Dr. ${data.name}</h3>
+                            <p class="text-blue-600 font-medium">${data.specialization}</p>
+                            <p class="text-sm text-gray-500">${data.location}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600">Experience</label>
+                            <p class="text-gray-900">${data.experience} years</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600">Rating</label>
+                            <div class="flex items-center">
+                                <div class="flex items-center">
+                                    ${Array.from({length: 5}, (_, i) => 
+                                        `<i class="fas fa-star ${i < Math.floor(data.rating) ? 'text-yellow-400' : 'text-gray-300'} text-sm"></i>`
+                                    ).join('')}
+                                </div>
+                                <span class="ml-2 text-sm text-gray-600">(${data.total_reviews})</span>
+                            </div>
+                        </div>
+                        ${data.consultation_fee ? `
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600">Consultation Fee</label>
+                            <p class="text-green-600 font-medium">KES ${data.consultation_fee}</p>
+                        </div>
+                        ` : ''}
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600">Services</label>
+                            <div class="flex flex-wrap gap-1">
+                                ${data.available_virtual ? '<span class="bg-green-100 text-green-600 px-2 py-1 rounded text-xs">Virtual</span>' : ''}
+                                ${data.available_home_visits ? '<span class="bg-blue-100 text-blue-600 px-2 py-1 rounded text-xs">Home Visit</span>' : ''}
+                                <span class="bg-purple-100 text-purple-600 px-2 py-1 rounded text-xs">In-Person</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    ${data.bio ? `
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-600 mb-1">About</label>
+                        <p class="text-gray-700 text-sm">${data.bio}</p>
+                    </div>
+                    ` : ''}
+                    
+                    <div class="flex space-x-3">
+                        <button onclick="closeQuickView()" 
+                                class="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors duration-200">
+                            Close
+                        </button>
+                        <a href="/services/provider/${providerId}/" 
+                           class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors duration-200 text-center">
+                            View Full Profile
+                        </a>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('quickViewContent').innerHTML = content;
+            document.getElementById('quickViewModal').classList.remove('hidden');
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error loading provider information');
+        });
+}
+
+function closeQuickView() {
+    document.getElementById('quickViewModal').classList.add('hidden');
+}
+
+function showLoginPrompt() {
+    document.getElementById('loginPromptModal').classList.remove('hidden');
+}
+
+function closeLoginPrompt() {
+    document.getElementById('loginPromptModal').classList.add('hidden');
+}
+
+// Close modals when clicking outside
+document.getElementById('quickViewModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeQuickView();
+    }
+});
+
+document.getElementById('loginPromptModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeLoginPrompt();
+    }
+});
+
+// Auto-submit form when filters change
+document.querySelectorAll('select[name="county"], select[name="specialization"], select[name="min_rating"], select[name="max_fee"], select[name="availability"], select[name="sort"]').forEach(select => {
+    select.addEventListener('change', function() {
+        this.form.submit();
+    });
+});
+</script>
+{% endblock %}
