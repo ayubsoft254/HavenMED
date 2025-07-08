@@ -1,0 +1,486 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Book Appointment - {{ provider.user.get_display_name }} - HavenMED{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50 py-8">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="mb-8">
+            <nav class="flex items-center text-sm text-gray-500 mb-4">
+                <a href="{% url 'provider_directory' %}" class="hover:text-blue-600">Providers</a>
+                <i class="fas fa-chevron-right mx-2"></i>
+                <span class="text-gray-900">Book Appointment</span>
+            </nav>
+            
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div class="flex items-center space-x-4">
+                    <img src="{{ provider.user.get_profile_photo_url }}" alt="{{ provider.user.get_display_name }}" class="w-16 h-16 rounded-full object-cover border-4 border-blue-100">
+                    <div class="flex-1">
+                        <h1 class="text-2xl font-bold text-gray-900">Dr. {{ provider.user.get_display_name }}</h1>
+                        <p class="text-gray-600">{{ provider.get_specialization_display }}</p>
+                        <div class="flex items-center mt-1">
+                            <div class="flex items-center">
+                                {% for i in "12345" %}
+                                    <i class="fas fa-star {% if provider.average_rating >= forloop.counter %}text-yellow-400{% else %}text-gray-300{% endif %} text-sm"></i>
+                                {% endfor %}
+                                <span class="ml-2 text-sm text-gray-600">({{ provider.average_rating }}/5.0)</span>
+                            </div>
+                            <span class="ml-4 text-sm text-gray-500">{{ provider.years_of_experience }} years experience</span>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        {% if provider.consultation_fee %}
+                            <p class="text-2xl font-bold text-green-600">KES {{ provider.consultation_fee }}</p>
+                            <p class="text-sm text-gray-500">Consultation Fee</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Booking Form -->
+        <form method="post" class="space-y-8">
+            {% csrf_token %}
+            
+            <!-- Service Selection -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-6">Select Service</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    {% for service in service_types %}
+                        <div class="service-option border border-gray-200 rounded-lg p-4 cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-all duration-200" data-service-id="{{ service.id }}">
+                            <input type="radio" name="service_type" value="{{ service.id }}" class="hidden" id="service_{{ service.id }}">
+                            <label for="service_{{ service.id }}" class="cursor-pointer">
+                                <h4 class="font-medium text-gray-900">{{ service.name }}</h4>
+                                <p class="text-sm text-gray-600 mt-1">{{ service.description }}</p>
+                                <div class="flex items-center justify-between mt-2">
+                                    <span class="text-sm text-gray-500">{{ service.duration_minutes }} min</span>
+                                    <span class="font-medium text-green-600">KES {{ service.base_price }}</span>
+                                </div>
+                            </label>
+                        </div>
+                    {% endfor %}
+                </div>
+                
+                <!-- Appointment Type -->
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-3">Consultation Type</label>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {% if provider.available_for_virtual_consultations %}
+                            <div class="appointment-type-option border border-gray-200 rounded-lg p-4 cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-all duration-200">
+                                <input type="radio" name="appointment_type" value="virtual" class="hidden" id="type_virtual">
+                                <label for="type_virtual" class="cursor-pointer">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="bg-green-100 p-2 rounded-full">
+                                            <i class="fas fa-video text-green-600"></i>
+                                        </div>
+                                        <div>
+                                            <h4 class="font-medium text-gray-900">Virtual Consultation</h4>
+                                            <p class="text-sm text-gray-600">Meet via Google Meet</p>
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+                        {% endif %}
+                        
+                        {% if provider.available_for_home_visits %}
+                            <div class="appointment-type-option border border-gray-200 rounded-lg p-4 cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-all duration-200">
+                                <input type="radio" name="appointment_type" value="home_visit" class="hidden" id="type_home">
+                                <label for="type_home" class="cursor-pointer">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="bg-blue-100 p-2 rounded-full">
+                                            <i class="fas fa-home text-blue-600"></i>
+                                        </div>
+                                        <div>
+                                            <h4 class="font-medium text-gray-900">Home Visit</h4>
+                                            <p class="text-sm text-gray-600">Doctor comes to you</p>
+                                            <p class="text-xs text-green-600 font-medium">+KES <span class="home-visit-fee">0</span> extra</p>
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="appointment-type-option border border-gray-200 rounded-lg p-4 cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-all duration-200">
+                            <input type="radio" name="appointment_type" value="in_person" class="hidden" id="type_person">
+                            <label for="type_person" class="cursor-pointer">
+                                <div class="flex items-center space-x-3">
+                                    <div class="bg-purple-100 p-2 rounded-full">
+                                        <i class="fas fa-clinic-medical text-purple-600"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-medium text-gray-900">In-Person</h4>
+                                        <p class="text-sm text-gray-600">Visit doctor's clinic</p>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Priority -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-3">Priority</label>
+                    <div class="flex space-x-4">
+                        <div class="priority-option">
+                            <input type="radio" name="priority" value="normal" class="hidden" id="priority_normal" checked>
+                            <label for="priority_normal" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+                                <span class="text-sm font-medium text-gray-700">Normal</span>
+                            </label>
+                        </div>
+                        <div class="priority-option">
+                            <input type="radio" name="priority" value="urgent" class="hidden" id="priority_urgent">
+                            <label for="priority_urgent" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
+                                <span class="text-sm font-medium text-gray-700">Urgent</span>
+                                <span class="ml-2 text-xs text-orange-600 font-medium">+KES <span class="urgent-fee">0</span></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Date & Time Selection -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-6">Select Date & Time</h3>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Date Selection -->
+                    <div>
+                        <label for="appointment_date" class="block text-sm font-medium text-gray-700 mb-2">Preferred Date</label>
+                        <input type="date" 
+                               name="appointment_date" 
+                               id="appointment_date"
+                               min="{{ today|date:'Y-m-d' }}"
+                               max="{{ max_date|date:'Y-m-d' }}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                               required>
+                    </div>
+                    
+                    <!-- Time Selection -->
+                    <div>
+                        <label for="appointment_time" class="block text-sm font-medium text-gray-700 mb-2">Preferred Time</label>
+                        <select name="appointment_time" 
+                                id="appointment_time"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                required>
+                            <option value="">Select a date first</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Available Slots Display -->
+                <div id="available-slots" class="mt-6 hidden">
+                    <h4 class="text-sm font-medium text-gray-700 mb-3">Available Time Slots</h4>
+                    <div id="slots-container" class="grid grid-cols-2 md:grid-cols-4 gap-2">
+                        <!-- Slots will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Patient Information -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-6">Medical Information</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="md:col-span-2">
+                        <label for="chief_complaint" class="block text-sm font-medium text-gray-700 mb-2">Chief Complaint *</label>
+                        <textarea name="chief_complaint" 
+                                  id="chief_complaint"
+                                  rows="3"
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  placeholder="What is the main reason for this appointment?"
+                                  required></textarea>
+                    </div>
+                    
+                    <div>
+                        <label for="symptoms" class="block text-sm font-medium text-gray-700 mb-2">Current Symptoms</label>
+                        <textarea name="symptoms" 
+                                  id="symptoms"
+                                  rows="3"
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  placeholder="Describe your current symptoms"></textarea>
+                    </div>
+                    
+                    <div>
+                        <label for="current_medications" class="block text-sm font-medium text-gray-700 mb-2">Current Medications</label>
+                        <textarea name="current_medications" 
+                                  id="current_medications"
+                                  rows="3"
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  placeholder="List any medications you're currently taking"></textarea>
+                    </div>
+                    
+                    <div>
+                        <label for="medical_history_notes" class="block text-sm font-medium text-gray-700 mb-2">Relevant Medical History</label>
+                        <textarea name="medical_history_notes" 
+                                  id="medical_history_notes"
+                                  rows="3"
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  placeholder="Any relevant medical history"></textarea>
+                    </div>
+                    
+                    <div>
+                        <label for="allergies_notes" class="block text-sm font-medium text-gray-700 mb-2">Allergies</label>
+                        <textarea name="allergies_notes" 
+                                  id="allergies_notes"
+                                  rows="3"
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  placeholder="List any known allergies"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact Information -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-6">Contact Information</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="patient_phone" class="block text-sm font-medium text-gray-700 mb-2">Phone Number *</label>
+                        <input type="tel" 
+                               name="patient_phone" 
+                               id="patient_phone"
+                               value="{{ patient_profile.user.phone_number }}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                               required>
+                    </div>
+                    
+                    <div>
+                        <label for="patient_email" class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                        <input type="email" 
+                               name="patient_email" 
+                               id="patient_email"
+                               value="{{ patient_profile.user.email }}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Home Visit Address (Hidden by default) -->
+            <div id="home-visit-section" class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hidden">
+                <h3 class="text-lg font-semibold text-gray-900 mb-6">Home Visit Details</h3>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label for="visit_address" class="block text-sm font-medium text-gray-700 mb-2">Visit Address *</label>
+                        <textarea name="visit_address" 
+                                  id="visit_address"
+                                  rows="3"
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  placeholder="Enter the complete address where the doctor should visit"></textarea>
+                    </div>
+                    
+                    <div>
+                        <label for="visit_instructions" class="block text-sm font-medium text-gray-700 mb-2">Special Instructions</label>
+                        <textarea name="visit_instructions" 
+                                  id="visit_instructions"
+                                  rows="2"
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  placeholder="Any special instructions for finding your location (e.g., gate color, apartment number, landmarks)"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cost Summary -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-6">Cost Summary</h3>
+                
+                <div class="space-y-3">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Consultation Fee</span>
+                        <span class="font-medium">KES <span id="consultation-fee">{{ provider.consultation_fee|default:0 }}</span></span>
+                    </div>
+                    
+                    <div class="flex justify-between" id="home-visit-fee-row" style="display: none;">
+                        <span class="text-gray-600">Home Visit Fee</span>
+                        <span class="font-medium">KES <span id="home-visit-fee">0</span></span>
+                    </div>
+                    
+                    <div class="flex justify-between" id="urgent-fee-row" style="display: none;">
+                        <span class="text-gray-600">Urgent Appointment Fee</span>
+                        <span class="font-medium">KES <span id="urgent-fee">0</span></span>
+                    </div>
+                    
+                    <div class="border-t pt-3">
+                        <div class="flex justify-between text-lg font-semibold">
+                            <span class="text-gray-900">Total Amount</span>
+                            <span class="text-green-600">KES <span id="total-amount">{{ provider.consultation_fee|default:0 }}</span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="flex justify-end space-x-4">
+                <a href="{% url 'provider_directory' %}" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors duration-200">
+                    Cancel
+                </a>
+                <button type="submit" class="px-8 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200">
+                    Proceed to Payment
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const serviceOptions = document.querySelectorAll('.service-option');
+    const appointmentTypeOptions = document.querySelectorAll('.appointment-type-option');
+    const priorityOptions = document.querySelectorAll('.priority-option');
+    const appointmentDateInput = document.getElementById('appointment_date');
+    const appointmentTimeSelect = document.getElementById('appointment_time');
+    const homeVisitSection = document.getElementById('home-visit-section');
+    const homeVisitAddress = document.getElementById('visit_address');
+    
+    let selectedService = null;
+    let pricingData = {};
+    
+    // Handle service selection
+    serviceOptions.forEach(option => {
+        option.addEventListener('click', function() {
+            serviceOptions.forEach(opt => opt.classList.remove('border-blue-500', 'bg-blue-50'));
+            this.classList.add('border-blue-500', 'bg-blue-50');
+            
+            const radio = this.querySelector('input[type="radio"]');
+            radio.checked = true;
+            selectedService = radio.value;
+            
+            // Load pricing data for this service
+            loadServicePricing(selectedService);
+        });
+    });
+    
+    // Handle appointment type selection
+    appointmentTypeOptions.forEach(option => {
+        option.addEventListener('click', function() {
+            appointmentTypeOptions.forEach(opt => opt.classList.remove('border-blue-500', 'bg-blue-50'));
+            this.classList.add('border-blue-500', 'bg-blue-50');
+            
+            const radio = this.querySelector('input[type="radio"]');
+            radio.checked = true;
+            
+            // Show/hide home visit section
+            if (radio.value === 'home_visit') {
+                homeVisitSection.classList.remove('hidden');
+                homeVisitAddress.required = true;
+            } else {
+                homeVisitSection.classList.add('hidden');
+                homeVisitAddress.required = false;
+            }
+            
+            updateCostSummary();
+        });
+    });
+    
+    // Handle priority selection
+    priorityOptions.forEach(option => {
+        const radio = option.querySelector('input[type="radio"]');
+        const label = option.querySelector('label');
+        
+        radio.addEventListener('change', function() {
+            priorityOptions.forEach(opt => {
+                const optLabel = opt.querySelector('label');
+                optLabel.classList.remove('border-blue-500', 'bg-blue-50');
+                optLabel.classList.add('border-gray-300');
+            });
+            
+            if (this.checked) {
+                label.classList.remove('border-gray-300');
+                label.classList.add('border-blue-500', 'bg-blue-50');
+                updateCostSummary();
+            }
+        });
+    });
+    
+    // Handle date selection
+    appointmentDateInput.addEventListener('change', function() {
+        const selectedDate = this.value;
+        if (selectedDate) {
+            loadAvailableSlots(selectedDate);
+        }
+    });
+    
+    function loadServicePricing(serviceId) {
+        fetch(`{% url 'services:get_service_pricing' 0 provider.id %}`.replace('0', serviceId))
+            .then(response => response.json())
+            .then(data => {
+                pricingData = data;
+                document.getElementById('consultation-fee').textContent = data.consultation_fee;
+                document.querySelector('.home-visit-fee').textContent = data.home_visit_extra;
+                document.querySelector('.urgent-fee').textContent = data.urgent_fee;
+                updateCostSummary();
+            })
+            .catch(error => console.error('Error loading pricing:', error));
+    }
+    
+    function loadAvailableSlots(date) {
+        appointmentTimeSelect.innerHTML = '<option value="">Loading...</option>';
+        
+        fetch(`{% url 'services:get_provider_availability' provider.id %}?date=${date}`)
+            .then(response => response.json())
+            .then(data => {
+                appointmentTimeSelect.innerHTML = '';
+                
+                if (data.success && data.slots.length > 0) {
+                    appointmentTimeSelect.innerHTML = '<option value="">Select a time</option>';
+                    data.slots.forEach(slot => {
+                        const option = document.createElement('option');
+                        option.value = slot.time;
+                        option.textContent = slot.display;
+                        appointmentTimeSelect.appendChild(option);
+                    });
+                } else {
+                    appointmentTimeSelect.innerHTML = '<option value="">No slots available</option>';
+                }
+            })
+            .catch(error => {
+                console.error('Error loading slots:', error);
+                appointmentTimeSelect.innerHTML = '<option value="">Error loading slots</option>';
+            });
+    }
+    
+    function updateCostSummary() {
+        if (!pricingData.consultation_fee) return;
+        
+        let total = parseFloat(pricingData.consultation_fee);
+        
+        // Home visit fee
+        const appointmentType = document.querySelector('input[name="appointment_type"]:checked');
+        const homeVisitFeeRow = document.getElementById('home-visit-fee-row');
+        
+        if (appointmentType && appointmentType.value === 'home_visit') {
+            total += parseFloat(pricingData.home_visit_extra || 0);
+            document.getElementById('home-visit-fee').textContent = pricingData.home_visit_extra || 0;
+            homeVisitFeeRow.style.display = 'flex';
+        } else {
+            homeVisitFeeRow.style.display = 'none';
+        }
+        
+        // Urgent fee
+        const priority = document.querySelector('input[name="priority"]:checked');
+        const urgentFeeRow = document.getElementById('urgent-fee-row');
+        
+        if (priority && priority.value === 'urgent') {
+            total += parseFloat(pricingData.urgent_fee || 0);
+            document.getElementById('urgent-fee').textContent = pricingData.urgent_fee || 0;
+            urgentFeeRow.style.display = 'flex';
+        } else {
+            urgentFeeRow.style.display = 'none';
+        }
+        
+        document.getElementById('total-amount').textContent = total.toFixed(0);
+    }
+    
+    // Set minimum date to today
+    const today = new Date();
+    const maxDate = new Date();
+    maxDate.setDate(today.getDate() + 30);
+    
+    appointmentDateInput.min = today.toISOString().split('T')[0];
+    appointmentDateInput.max = maxDate.toISOString().split('T')[0];
+});
+</script>
+{% endblock %}
