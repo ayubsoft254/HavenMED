@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     # Custom apps
     'landing',
     'accounts',
+    'services',
 ]
 
 MIDDLEWARE = [
