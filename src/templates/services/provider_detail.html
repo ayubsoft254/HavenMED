@@ -1,0 +1,350 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Dr. {{ provider.user.get_display_name }} - {{ provider.get_specialization_display }} - HavenMED{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Back Button -->
+        <div class="mb-6">
+            <a href="{% url 'provider_directory' %}" 
+               class="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium">
+                <i class="fas fa-arrow-left mr-2"></i>Back to Provider Directory
+            </a>
+        </div>
+
+        <!-- Provider Header -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8 mb-8">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+                <div class="flex items-center space-x-6 mb-6 lg:mb-0">
+                    <img src="{{ provider.user.get_profile_photo_url }}" 
+                         alt="{{ provider.user.get_display_name }}" 
+                         class="w-24 h-24 rounded-full object-cover border-4 border-blue-100">
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-900 mb-2">
+                            Dr. {{ provider.user.get_display_name }}
+                        </h1>
+                        <p class="text-xl text-blue-600 font-medium mb-2">{{ provider.get_specialization_display }}</p>
+                        <div class="flex items-center space-x-4">
+                            <div class="flex items-center">
+                                {% for i in "12345" %}
+                                    <i class="fas fa-star {% if provider.average_rating >= forloop.counter %}text-yellow-400{% else %}text-gray-300{% endif %}"></i>
+                                {% endfor %}
+                                <span class="ml-2 text-gray-600">({{ provider.total_reviews }} reviews)</span>
+                            </div>
+                            <span class="text-gray-500">•</span>
+                            <span class="text-gray-600">{{ provider.years_of_experience }} years experience</span>
+                        </div>
+                        <p class="text-gray-500 mt-1">
+                            <i class="fas fa-map-marker-alt mr-1"></i>
+                            {% if provider.user.county %}
+                                {{ provider.user.subcounty|default:"" }}{% if provider.user.subcounty %}, {% endif %}{{ provider.user.get_county_display }}
+                            {% else %}
+                                Location not specified
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="lg:text-right">
+                    {% if can_book %}
+                        <a href="{% url 'services:book_appointment' provider.id %}" 
+                           class="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors duration-200 font-semibold text-lg shadow-lg">
+                            <i class="fas fa-calendar-plus mr-2"></i>Book Appointment
+                        </a>
+                    {% else %}
+                        <a href="{% url 'account_login' %}" 
+                           class="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors duration-200 font-semibold text-lg shadow-lg">
+                            <i class="fas fa-sign-in-alt mr-2"></i>Login to Book
+                        </a>
+                    {% endif %}
+                    
+                    {% if provider.consultation_fee %}
+                        <div class="mt-3 text-2xl font-bold text-green-600">
+                            KES {{ provider.consultation_fee }}
+                            <span class="text-sm font-normal text-gray-500">per consultation</span>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Left Column - Main Info -->
+            <div class="lg:col-span-2 space-y-8">
+                <!-- About Section -->
+                {% if provider.bio %}
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-4">About Dr. {{ provider.user.first_name }}</h2>
+                    <p class="text-gray-700 leading-relaxed">{{ provider.bio }}</p>
+                </div>
+                {% endif %}
+
+                <!-- Services Available -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-4">Services Available</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {% if provider.available_for_virtual_consultations %}
+                        <div class="border border-green-200 rounded-lg p-4 bg-green-50">
+                            <div class="text-center">
+                                <i class="fas fa-video text-green-600 text-2xl mb-2"></i>
+                                <h3 class="font-medium text-green-800">Virtual Consultations</h3>
+                                <p class="text-sm text-green-600 mt-1">Video calls via Google Meet</p>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if provider.available_for_home_visits %}
+                        <div class="border border-blue-200 rounded-lg p-4 bg-blue-50">
+                            <div class="text-center">
+                                <i class="fas fa-home text-blue-600 text-2xl mb-2"></i>
+                                <h3 class="font-medium text-blue-800">Home Visits</h3>
+                                <p class="text-sm text-blue-600 mt-1">Doctor visits your location</p>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="border border-purple-200 rounded-lg p-4 bg-purple-50">
+                            <div class="text-center">
+                                <i class="fas fa-clinic-medical text-purple-600 text-2xl mb-2"></i>
+                                <h3 class="font-medium text-purple-800">In-Person</h3>
+                                <p class="text-sm text-purple-600 mt-1">Visit clinic or hospital</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reviews Section -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-6">Patient Reviews</h2>
+                    
+                    <!-- Rating Summary -->
+                    <div class="bg-gray-50 rounded-lg p-6 mb-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="text-4xl font-bold text-gray-900 mb-2">{{ provider.average_rating|floatformat:1 }}</div>
+                                <div class="flex items-center mb-2">
+                                    {% for i in "12345" %}
+                                        <i class="fas fa-star {% if provider.average_rating >= forloop.counter %}text-yellow-400{% else %}text-gray-300{% endif %} text-lg"></i>
+                                    {% endfor %}
+                                </div>
+                                <p class="text-gray-600">Based on {{ provider.total_reviews }} reviews</p>
+                            </div>
+                            
+                            <!-- Rating Distribution -->
+                            <div class="space-y-2">
+                                {% for rating, count in rating_distribution.items %}
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-sm text-gray-600">{{ rating }} star</span>
+                                    <div class="w-24 bg-gray-200 rounded-full h-2">
+                                        <div class="bg-yellow-400 h-2 rounded-full" 
+                                             style="width: {% if provider.total_reviews > 0 %}{{ count|floatformat:0 }}{% else %}0{% endif %}%"></div>
+                                    </div>
+                                    <span class="text-sm text-gray-600">{{ count }}</span>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Individual Reviews -->
+                    {% if recent_reviews %}
+                        <div class="space-y-6">
+                            {% for review in recent_reviews %}
+                            <div class="border-b border-gray-200 pb-6 last:border-b-0 last:pb-0">
+                                <div class="flex items-start space-x-4">
+                                    <img src="{{ review.patient.user.get_profile_photo_url }}" 
+                                         alt="{{ review.patient.user.first_name }}" 
+                                         class="w-10 h-10 rounded-full object-cover">
+                                    <div class="flex-1">
+                                        <div class="flex items-center justify-between mb-2">
+                                            <div>
+                                                <h4 class="font-medium text-gray-900">{{ review.patient.user.first_name }} {{ review.patient.user.last_name|first }}.</h4>
+                                                <div class="flex items-center">
+                                                    {% for i in "12345" %}
+                                                        <i class="fas fa-star {% if review.patient_rating >= forloop.counter %}text-yellow-400{% else %}text-gray-300{% endif %} text-sm"></i>
+                                                    {% endfor %}
+                                                </div>
+                                            </div>
+                                            <span class="text-sm text-gray-500">{{ review.completed_at|date:"M d, Y" }}</span>
+                                        </div>
+                                        <p class="text-gray-700">{{ review.patient_review }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-8">
+                            <i class="fas fa-star text-gray-300 text-4xl mb-4"></i>
+                            <p class="text-gray-600">No reviews yet</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Right Column - Sidebar -->
+            <div class="space-y-6">
+                <!-- Quick Info -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Information</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600">License Number</label>
+                            <p class="text-gray-900">{{ provider.kmpdu_license_number }}</p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600">Experience Level</label>
+                            <p class="text-gray-900">{{ provider.get_experience_level }}</p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600">Availability Status</label>
+                            {% if provider.is_available %}
+                                <span class="inline-flex items-center text-green-600">
+                                    <i class="fas fa-circle text-green-500 text-xs mr-2"></i>
+                                    Currently Available
+                                </span>
+                            {% else %}
+                                <span class="inline-flex items-center text-red-600">
+                                    <i class="fas fa-circle text-red-500 text-xs mr-2"></i>
+                                    Currently Busy
+                                </span>
+                            {% endif %}
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600">Average Response Time</label>
+                            <p class="text-gray-900">{{ avg_response_time }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contact Information -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Contact Information</h3>
+                    <div class="space-y-3">
+                        {% if provider.user.phone_number %}
+                        <div class="flex items-center space-x-3">
+                            <i class="fas fa-phone text-gray-400"></i>
+                            <span class="text-gray-900">{{ provider.user.phone_number }}</span>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="flex items-center space-x-3">
+                            <i class="fas fa-envelope text-gray-400"></i>
+                            <span class="text-gray-900">{{ provider.user.email }}</span>
+                        </div>
+                        
+                        {% if provider.user.county %}
+                        <div class="flex items-center space-x-3">
+                            <i class="fas fa-map-marker-alt text-gray-400"></i>
+                            <span class="text-gray-900">{{ provider.user.subcounty|default:"" }}{% if provider.user.subcounty %}, {% endif %}{{ provider.user.get_county_display }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Booking Options -->
+                <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200 p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Ready to Book?</h3>
+                    
+                    {% if provider.consultation_fee %}
+                        <div class="mb-4">
+                            <div class="text-2xl font-bold text-green-600 mb-1">
+                                KES {{ provider.consultation_fee }}
+                            </div>
+                            <p class="text-sm text-gray-600">Standard consultation fee</p>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="space-y-3 mb-6">
+                        <div class="flex items-center text-sm text-gray-600">
+                            <i class="fas fa-check text-green-500 mr-2"></i>
+                            Secure payment processing
+                        </div>
+                        <div class="flex items-center text-sm text-gray-600">
+                            <i class="fas fa-check text-green-500 mr-2"></i>
+                            Flexible scheduling
+                        </div>
+                        <div class="flex items-center text-sm text-gray-600">
+                            <i class="fas fa-check text-green-500 mr-2"></i>
+                            Professional consultation
+                        </div>
+                    </div>
+                    
+                    {% if can_book %}
+                        <a href="{% url 'services:book_appointment' provider.id %}" 
+                           class="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors duration-200 font-semibold text-center block">
+                            <i class="fas fa-calendar-plus mr-2"></i>Book Appointment Now
+                        </a>
+                    {% else %}
+                        <a href="{% url 'account_login' %}" 
+                           class="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors duration-200 font-semibold text-center block">
+                            <i class="fas fa-sign-in-alt mr-2"></i>Login to Book
+                        </a>
+                    {% endif %}
+                </div>
+
+                <!-- Share Profile -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Share Profile</h3>
+                    <div class="flex space-x-3">
+                        <button onclick="shareProfile('facebook')" 
+                                class="flex-1 bg-blue-600 text-white py-2 px-3 rounded-lg hover:bg-blue-700 transition-colors duration-200 text-sm">
+                            <i class="fab fa-facebook-f"></i>
+                        </button>
+                        <button onclick="shareProfile('twitter')" 
+                                class="flex-1 bg-blue-400 text-white py-2 px-3 rounded-lg hover:bg-blue-500 transition-colors duration-200 text-sm">
+                            <i class="fab fa-twitter"></i>
+                        </button>
+                        <button onclick="shareProfile('whatsapp')" 
+                                class="flex-1 bg-green-500 text-white py-2 px-3 rounded-lg hover:bg-green-600 transition-colors duration-200 text-sm">
+                            <i class="fab fa-whatsapp"></i>
+                        </button>
+                        <button onclick="copyLink()" 
+                                class="flex-1 bg-gray-500 text-white py-2 px-3 rounded-lg hover:bg-gray-600 transition-colors duration-200 text-sm">
+                            <i class="fas fa-link"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function shareProfile(platform) {
+    const url = window.location.href;
+    const title = `Dr. {{ provider.user.get_display_name }} - {{ provider.get_specialization_display }} on HavenMED`;
+    
+    let shareUrl;
+    switch(platform) {
+        case 'facebook':
+            shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+            break;
+        case 'twitter':
+            shareUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`;
+            break;
+        case 'whatsapp':
+            shareUrl = `https://wa.me/?text=${encodeURIComponent(title + ' ' + url)}`;
+            break;
+    }
+    
+    if (shareUrl) {
+        window.open(shareUrl, '_blank', 'width=600,height=400');
+    }
+}
+
+function copyLink() {
+    navigator.clipboard.writeText(window.location.href).then(function() {
+        alert('Profile link copied to clipboard!');
+    }, function(err) {
+        console.error('Could not copy text: ', err);
+    });
+}
+</script>
+{% endblock %}
