@@ -4,16 +4,15 @@ from django.contrib import messages
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.utils import timezone
-from django.db.models import Q
-from datetime import datetime, timedelta, time
+from django.db.models import Q, Avg, Count
+from datetime import datetime, timedelta
 from decimal import Decimal
-import json
-
+from django.core.paginator import Paginator
 from .models import (
     Appointment, AvailabilitySlot, SpecialAvailability, 
-    ServiceType, Payment, ConsultationNotes
+    ServiceType, Payment
 )
-from accounts.models import HealthcareProfessionalProfile, PatientProfile
+from accounts.models import HealthcareProfessionalProfile, KENYA_COUNTIES
 
 @login_required
 def book_appointment(request, provider_id):
@@ -437,3 +436,177 @@ def get_service_pricing(request, service_id, provider_id):
         'home_visit_available': service.home_visit_available,
         'in_person_available': service.in_person_available,
     })
+
+def provider_directory(request):
+    """Public directory of healthcare providers with filtering and search"""
+    
+    # Get filter parameters
+    county = request.GET.get('county', '')
+    specialization = request.GET.get('specialization', '')
+    service_type = request.GET.get('service_type', '')
+    search_query = request.GET.get('q', '')
+    sort_by = request.GET.get('sort', 'rating')  # rating, experience, fee_low, fee_high
+    min_rating = request.GET.get('min_rating', '')
+    max_fee = request.GET.get('max_fee', '')
+    availability = request.GET.get('availability', '')  # virtual, home_visits, in_person
+    
+    # Base queryset - only approved and available providers
+    providers = HealthcareProfessionalProfile.objects.filter(
+        user__is_approved=True,
+        is_available=True
+    ).select_related('user').annotate(
+        avg_rating=Avg('appointments__patient_rating'),
+        total_appointments=Count('appointments'),
+        completed_appointments=Count('appointments', filter=Q(appointments__status='completed'))
+    )
+    
+    # Apply filters
+    if county:
+        providers = providers.filter(user__county=county)
+    
+    if specialization:
+        providers = providers.filter(specialization=specialization)
+    
+    if search_query:
+        providers = providers.filter(
+            Q(user__first_name__icontains=search_query) |
+            Q(user__last_name__icontains=search_query) |
+            Q(specialization__icontains=search_query) |
+            Q(bio__icontains=search_query)
+        )
+    
+    if min_rating:
+        try:
+            min_rating_value = float(min_rating)
+            providers = providers.filter(average_rating__gte=min_rating_value)
+        except ValueError:
+            pass
+    
+    if max_fee:
+        try:
+            max_fee_value = float(max_fee)
+            providers = providers.filter(consultation_fee__lte=max_fee_value)
+        except ValueError:
+            pass
+    
+    # Availability filters
+    if availability == 'virtual':
+        providers = providers.filter(available_for_virtual_consultations=True)
+    elif availability == 'home_visits':
+        providers = providers.filter(available_for_home_visits=True)
+    elif availability == 'in_person':
+        # Assuming in-person is always available unless specified otherwise
+        pass
+    
+    # Sorting
+    if sort_by == 'rating':
+        providers = providers.order_by('-average_rating', '-total_reviews')
+    elif sort_by == 'experience':
+        providers = providers.order_by('-years_of_experience')
+    elif sort_by == 'fee_low':
+        providers = providers.order_by('consultation_fee')
+    elif sort_by == 'fee_high':
+        providers = providers.order_by('-consultation_fee')
+    elif sort_by == 'name':
+        providers = providers.order_by('user__first_name', 'user__last_name')
+    else:
+        providers = providers.order_by('-average_rating', '-total_reviews')
+    
+    # Pagination
+    paginator = Paginator(providers, 12)  # 12 providers per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    # Get filter options for the template
+    specializations = HealthcareProfessionalProfile.SPECIALIZATION_CHOICES
+    service_types = ServiceType.objects.filter(is_active=True)
+    counties = KENYA_COUNTIES
+    
+    # Statistics for the directory
+    stats = {
+        'total_providers': providers.count(),
+        'avg_rating': providers.aggregate(avg=Avg('average_rating'))['avg'] or 0,
+        'specializations_count': providers.values('specialization').distinct().count(),
+        'counties_count': providers.values('user__county').distinct().count(),
+    }
+    
+    context = {
+        'page_obj': page_obj,
+        'providers': page_obj.object_list,
+        'specializations': specializations,
+        'service_types': service_types,
+        'counties': counties,
+        'stats': stats,
+        'current_filters': {
+            'county': county,
+            'specialization': specialization,
+            'service_type': service_type,
+            'search_query': search_query,
+            'sort_by': sort_by,
+            'min_rating': min_rating,
+            'max_fee': max_fee,
+            'availability': availability,
+        },
+        'total_results': paginator.count,
+    }
+    
+    return render(request, 'services/provider_directory.html', context)
+
+def provider_detail(request, provider_id):
+    """Detailed view of a healthcare provider"""
+    provider = get_object_or_404(HealthcareProfessionalProfile, id=provider_id)
+    
+    # Get provider's recent reviews
+    recent_reviews = provider.appointments.filter(
+        patient_rating__isnull=False,
+        patient_review__isnull=False
+    ).exclude(patient_review='').order_by('-completed_at')[:10]
+    
+    # Get provider's availability (simplified - you can make this more complex)
+    from datetime import date, timedelta
+    today = date.today()
+    next_week = today + timedelta(days=7)
+    
+    # Calculate rating distribution
+    rating_distribution = {}
+    for i in range(1, 6):
+        count = provider.appointments.filter(patient_rating=i).count()
+        rating_distribution[i] = count
+    
+    # Get service types
+    service_types = ServiceType.objects.filter(is_active=True)
+    
+    # Calculate response time (mock data - implement based on your needs)
+    avg_response_time = "Within 2 hours"  # You can calculate this from actual data
+    
+    context = {
+        'provider': provider,
+        'recent_reviews': recent_reviews,
+        'rating_distribution': rating_distribution,
+        'service_types': service_types,
+        'avg_response_time': avg_response_time,
+        'can_book': request.user.is_authenticated and request.user.user_type == 'patient',
+    }
+    
+    return render(request, 'services/provider_detail.html', context)
+
+# AJAX view for quick provider info
+def provider_quick_info(request, provider_id):
+    """AJAX endpoint for quick provider information"""
+    provider = get_object_or_404(HealthcareProfessionalProfile, id=provider_id)
+    
+    data = {
+        'name': provider.user.get_display_name(),
+        'specialization': provider.get_specialization_display(),
+        'experience': provider.years_of_experience,
+        'rating': float(provider.average_rating),
+        'total_reviews': provider.total_reviews,
+        'consultation_fee': float(provider.consultation_fee) if provider.consultation_fee else None,
+        'bio': provider.bio,
+        'available_virtual': provider.available_for_virtual_consultations,
+        'available_home_visits': provider.available_for_home_visits,
+        'profile_photo': provider.user.get_profile_photo_url(),
+        'location': f"{provider.user.subcounty}, {dict(KENYA_COUNTIES).get(provider.user.county, '')}" if provider.user.county else "Location not specified",
+    }
+    
+    return JsonResponse(data)
