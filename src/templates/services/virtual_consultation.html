@@ -4,118 +4,417 @@
 {% block title %}Virtual Consultation - HavenMED{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50 py-8">
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-purple-900">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <!-- Header -->
-        <div class="mb-8">
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center space-x-4">
-                        <img src="{{ appointment.healthcare_professional.user.get_profile_photo_url }}" 
-                             alt="{{ appointment.healthcare_professional.user.get_display_name }}" 
-                             class="w-12 h-12 rounded-full object-cover border-2 border-blue-100">
-                        <div>
-                            <h1 class="text-xl font-bold text-gray-900">Virtual Consultation</h1>
-                            <p class="text-gray-600">with Dr. {{ appointment.healthcare_professional.user.get_display_name }}</p>
+        <div class="mb-8 text-center">
+            <h1 class="text-4xl font-bold text-white mb-2">Virtual Consultation</h1>
+            <p class="text-blue-100">{{ appointment.appointment_date|date:"F j, Y" }} at {{ appointment.appointment_time|time:"g:i A" }}</p>
+        </div>
+
+        <!-- Main Content -->
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            <!-- Video Call Area -->
+            <div class="lg:col-span-3">
+                <div class="bg-white rounded-xl shadow-2xl overflow-hidden">
+                    <!-- Meeting Header -->
+                    <div class="bg-gray-900 text-white p-4">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-4">
+                                <img src="{{ appointment.healthcare_professional.user.get_profile_photo_url }}" 
+                                     alt="{{ appointment.healthcare_professional.user.get_display_name }}" 
+                                     class="w-10 h-10 rounded-full object-cover border-2 border-blue-400">
+                                <div>
+                                    <h3 class="font-semibold">Dr. {{ appointment.healthcare_professional.user.get_display_name }}</h3>
+                                    <p class="text-sm text-gray-300">{{ appointment.healthcare_professional.get_specialization_display }}</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center space-x-2">
+                                <span class="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium">
+                                    <i class="fas fa-circle text-xs mr-1"></i>Live
+                                </span>
+                                <div id="meeting-timer" class="text-sm text-gray-300">
+                                    00:00:00
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    
-                    <div class="text-right">
-                        <p class="text-sm text-gray-600">{{ appointment.appointment_date|date:"M d, Y" }}</p>
-                        <p class="text-sm text-gray-600">{{ appointment.appointment_time|time:"g:i A" }}</p>
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 mt-1">
-                            <i class="fas fa-circle text-green-400 mr-1 text-xs"></i>Live
-                        </span>
+
+                    <!-- Video Container -->
+                    <div class="relative bg-gray-900 aspect-video">
+                        <!-- Google Meet Embed Area -->
+                        <div id="google-meet-container" class="w-full h-full flex items-center justify-center">
+                            <div class="text-center text-white">
+                                <i class="fas fa-video text-6xl mb-4 opacity-50"></i>
+                                <h3 class="text-xl font-semibold mb-2">Ready to Join Meeting</h3>
+                                <p class="text-gray-300 mb-6">Click the button below to join your virtual consultation</p>
+                                
+                                <a href="{{ appointment.google_meet_link }}" 
+                                   target="_blank" 
+                                   onclick="startMeetingTimer()"
+                                   class="bg-green-600 text-white px-8 py-3 rounded-lg hover:bg-green-700 transition-colors duration-200 font-semibold text-lg inline-flex items-center">
+                                    <i class="fas fa-video mr-3"></i>Join Google Meet
+                                </a>
+                                
+                                <div class="mt-6 p-4 bg-blue-900/50 rounded-lg">
+                                    <p class="text-sm text-blue-100">
+                                        <i class="fas fa-info-circle mr-2"></i>
+                                        The meeting will open in a new tab. Please allow camera and microphone permissions when prompted.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Meeting Controls -->
+                    <div class="bg-gray-100 p-4">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-4">
+                                <div class="flex items-center space-x-2">
+                                    <i class="fas fa-microphone text-green-600"></i>
+                                    <span class="text-sm text-gray-600">Microphone Ready</span>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <i class="fas fa-video text-green-600"></i>
+                                    <span class="text-sm text-gray-600">Camera Ready</span>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center space-x-3">
+                                <button onclick="shareScreen()" 
+                                        class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200 text-sm">
+                                    <i class="fas fa-desktop mr-2"></i>Share Screen
+                                </button>
+                                
+                                <button onclick="endConsultation()" 
+                                        class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors duration-200 text-sm">
+                                    <i class="fas fa-phone-slash mr-2"></i>End Consultation
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pre-Meeting Checklist -->
+                <div class="mt-6 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Pre-Consultation Checklist</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="flex items-center space-x-3">
+                            <i class="fas fa-check-circle text-green-500"></i>
+                            <span class="text-gray-700">Stable internet connection</span>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <i class="fas fa-check-circle text-green-500"></i>
+                            <span class="text-gray-700">Camera and microphone working</span>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <i class="fas fa-check-circle text-green-500"></i>
+                            <span class="text-gray-700">Quiet, private environment</span>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <i class="fas fa-check-circle text-green-500"></i>
+                            <span class="text-gray-700">Medical history available</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="lg:col-span-1 space-y-6">
+                <!-- Appointment Summary -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                    <div class="p-6 border-b border-gray-200">
+                        <h3 class="text-lg font-semibold text-gray-900">Appointment Summary</h3>
+                    </div>
+                    <div class="p-6 space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600">Patient</label>
+                            <p class="text-gray-900">{{ appointment.patient.user.get_display_name }}</p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600">Date & Time</label>
+                            <p class="text-gray-900">{{ appointment.appointment_date|date:"M j, Y" }}</p>
+                            <p class="text-gray-900">{{ appointment.appointment_time|time:"g:i A" }}</p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600">Duration</label>
+                            <p class="text-gray-900">{{ appointment.duration_minutes }} minutes</p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600">Service</label>
+                            <p class="text-gray-900">{{ appointment.service_type.name }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chief Complaint -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                    <div class="p-6 border-b border-gray-200">
+                        <h3 class="text-lg font-semibold text-gray-900">Chief Complaint</h3>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-gray-900">{{ appointment.chief_complaint }}</p>
+                        
+                        {% if appointment.symptoms %}
+                        <div class="mt-4">
+                            <label class="block text-sm font-medium text-gray-600">Symptoms</label>
+                            <p class="text-gray-900 mt-1">{{ appointment.symptoms }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Medical History -->
+                {% if appointment.current_medications or appointment.allergies_notes or appointment.medical_history_notes %}
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                    <div class="p-6 border-b border-gray-200">
+                        <h3 class="text-lg font-semibold text-gray-900">Medical History</h3>
+                    </div>
+                    <div class="p-6 space-y-4">
+                        {% if appointment.current_medications %}
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600">Current Medications</label>
+                            <p class="text-gray-900 mt-1">{{ appointment.current_medications }}</p>
+                        </div>
+                        {% endif %}
+                        
+                        {% if appointment.allergies_notes %}
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600">Allergies</label>
+                            <p class="text-red-600 mt-1">{{ appointment.allergies_notes }}</p>
+                        </div>
+                        {% endif %}
+                        
+                        {% if appointment.medical_history_notes %}
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600">Medical History</label>
+                            <p class="text-gray-900 mt-1">{{ appointment.medical_history_notes }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Technical Support -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                    <div class="p-6 border-b border-gray-200">
+                        <h3 class="text-lg font-semibold text-gray-900">Need Help?</h3>
+                    </div>
+                    <div class="p-6 space-y-3">
+                        <button onclick="testCamera()" 
+                                class="w-full bg-blue-100 text-blue-700 py-2 px-4 rounded-lg hover:bg-blue-200 transition-colors duration-200 text-sm">
+                            <i class="fas fa-video mr-2"></i>Test Camera
+                        </button>
+                        
+                        <button onclick="testMicrophone()" 
+                                class="w-full bg-green-100 text-green-700 py-2 px-4 rounded-lg hover:bg-green-200 transition-colors duration-200 text-sm">
+                            <i class="fas fa-microphone mr-2"></i>Test Microphone
+                        </button>
+                        
+                        <button onclick="contactSupport()" 
+                                class="w-full bg-purple-100 text-purple-700 py-2 px-4 rounded-lg hover:bg-purple-200 transition-colors duration-200 text-sm">
+                            <i class="fas fa-headset mr-2"></i>Contact Support
+                        </button>
+                        
+                        <div class="text-center text-sm text-gray-500 mt-4">
+                            <p>For technical issues, call:</p>
+                            <p class="font-semibold text-gray-700">+254 700 123 456</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                    <div class="p-6 border-b border-gray-200">
+                        <h3 class="text-lg font-semibold text-gray-900">Quick Actions</h3>
+                    </div>
+                    <div class="p-6 space-y-3">
+                        <a href="{% url 'services:appointment_detail' appointment.id %}" 
+                           class="w-full bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors duration-200 text-sm text-center block">
+                            <i class="fas fa-file-alt mr-2"></i>View Appointment Details
+                        </a>
+                        
+                        <button onclick="downloadAppointmentInfo()" 
+                                class="w-full bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors duration-200 text-sm">
+                            <i class="fas fa-download mr-2"></i>Download Info
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
+</div>
 
-        <!-- Video Conference Section -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <!-- Main Video Area -->
-            <div class="lg:col-span-2">
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                    <div class="bg-gray-900 text-white p-4">
-                        <div class="flex items-center justify-between">
-                            <h3 class="font-medium">Google Meet Video Call</h3>
-                            <div class="flex items-center space-x-2">
-                                <span class="text-green-400 text-sm">
-                                    <i class="fas fa-circle mr-1"></i>Connected
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Video Frame -->
-                    <div class="aspect-video bg-gray-100 flex items-center justify-center">
-                        {% if appointment.google_meet_link %}
-                            <iframe src="{{ appointment.google_meet_link }}" 
-                                    class="w-full h-full border-0"
-                                    allow="camera; microphone; fullscreen; speaker">
-                            </iframe>
-                        {% else %}
-                            <div class="text-center">
-                                <i class="fas fa-video text-gray-400 text-4xl mb-4"></i>
-                                <p class="text-gray-600 mb-4">Video call will start automatically</p>
-                                <button id="generate-meet-link" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-{% extends "base.html" %}
-{% load static %}
-
-{% block title %}Virtual Consultation - HavenMED{% endblock %}
-
-{% block content %}
-<div class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50 py-8">
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <!-- Header -->
-        <div class="mb-8">
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center space-x-4">
-                        <img src="{{ appointment.healthcare_professional.user.get_profile_photo_url }}" 
-                             alt="{{ appointment.healthcare_professional.user.get_display_name }}" 
-                             class="w-12 h-12 rounded-full object-cover border-2 border-blue-100">
-                        <div>
-                            <h1 class="text-xl font-bold text-gray-900">Virtual Consultation</h1>
-                            <p class="text-gray-600">with Dr. {{ appointment.healthcare_professional.user.get_display_name }}</p>
-                        </div>
-                    </div>
-                    
-                    <div class="text-right">
-                        <p class="text-sm text-gray-600">{{ appointment.appointment_date|date:"M d, Y" }}</p>
-                        <p class="text-sm text-gray-600">{{ appointment.appointment_time|time:"g:i A" }}</p>
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 mt-1">
-                            <i class="fas fa-circle text-green-400 mr-1 text-xs"></i>Live
-                        </span>
-                    </div>
-                </div>
+<!-- End Consultation Modal -->
+<div id="endConsultationModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+        <div class="p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">End Consultation</h3>
+            <p class="text-gray-600 mb-6">Are you sure you want to end this consultation? This will mark the appointment as completed.</p>
+            
+            <div class="flex space-x-3">
+                <button onclick="closeEndModal()" 
+                        class="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors duration-200">
+                    Continue Consultation
+                </button>
+                <button onclick="confirmEndConsultation()" 
+                        class="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors duration-200">
+                    End Consultation
+                </button>
             </div>
         </div>
+    </div>
+</div>
 
-        <!-- Video Conference Section -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <!-- Main Video Area -->
-            <div class="lg:col-span-2">
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                    <div class="bg-gray-900 text-white p-4">
-                        <div class="flex items-center justify-between">
-                            <h3 class="font-medium">Google Meet Video Call</h3>
-                            <div class="flex items-center space-x-2">
-                                <span class="text-green-400 text-sm">
-                                    <i class="fas fa-circle mr-1"></i>Connected
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Video Frame -->
-                    <div class="aspect-video bg-gray-100 flex items-center justify-center">
-                        {% if appointment.google_meet_link %}
-                            <iframe src="{{ appointment.google_meet_link }}" 
-                                    class="w-full h-full border-0"
-                                    allow="camera; microphone; fullscreen; speaker">
-                            </iframe>
-                        {% else %}
-                            <div class="text-center">
-                                <i class="fas fa-video text-gray-400 text-4xl mb-4"></i>
-                                <p class="text-gray-600 mb-4">Video call will start automatically</p>
-                                <button id="generate-meet-link" class="bg-blue-600 text-white px
+<script>
+let meetingStartTime = null;
+let timerInterval = null;
+
+function startMeetingTimer() {
+    if (!meetingStartTime) {
+        meetingStartTime = new Date();
+        timerInterval = setInterval(updateTimer, 1000);
+    }
+}
+
+function updateTimer() {
+    if (meetingStartTime) {
+        const now = new Date();
+        const elapsed = now - meetingStartTime;
+        const hours = Math.floor(elapsed / 3600000);
+        const minutes = Math.floor((elapsed % 3600000) / 60000);
+        const seconds = Math.floor((elapsed % 60000) / 1000);
+        
+        document.getElementById('meeting-timer').textContent = 
+            `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+}
+
+function shareScreen() {
+    alert('Screen sharing is available through Google Meet. Click the share screen button in the meeting window.');
+}
+
+function endConsultation() {
+    document.getElementById('endConsultationModal').classList.remove('hidden');
+}
+
+function closeEndModal() {
+    document.getElementById('endConsultationModal').classList.add('hidden');
+}
+
+function confirmEndConsultation() {
+    if (timerInterval) {
+        clearInterval(timerInterval);
+    }
+    
+    // Update appointment status to completed
+    fetch("{% url 'services:appointment_detail' appointment.id %}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({
+            action: 'complete_consultation'
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert('Consultation completed successfully');
+        window.location.href = "{% url 'services:appointment_detail' appointment.id %}";
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        window.location.href = "{% url 'services:appointment_detail' appointment.id %}";
+    });
+}
+
+function testCamera() {
+    navigator.mediaDevices.getUserMedia({ video: true })
+        .then(stream => {
+            alert('Camera is working correctly!');
+            stream.getTracks().forEach(track => track.stop());
+        })
+        .catch(error => {
+            alert('Camera test failed. Please check your camera permissions and try again.');
+        });
+}
+
+function testMicrophone() {
+    navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(stream => {
+            alert('Microphone is working correctly!');
+            stream.getTracks().forEach(track => track.stop());
+        })
+        .catch(error => {
+            alert('Microphone test failed. Please check your microphone permissions and try again.');
+        });
+}
+
+function contactSupport() {
+    const supportMessage = `Hello, I need technical support for my virtual consultation.
+    
+Appointment ID: {{ appointment.id }}
+Date: {{ appointment.appointment_date|date:"F j, Y" }}
+Time: {{ appointment.appointment_time|time:"g:i A" }}
+Issue: [Please describe your issue here]`;
+    
+    const whatsappUrl = `https://wa.me/254700123456?text=${encodeURIComponent(supportMessage)}`;
+    window.open(whatsappUrl, '_blank');
+}
+
+function downloadAppointmentInfo() {
+    const appointmentInfo = `
+HAVENMED VIRTUAL CONSULTATION
+================================
+
+Appointment ID: {{ appointment.id }}
+Date: {{ appointment.appointment_date|date:"F j, Y" }}
+Time: {{ appointment.appointment_time|time:"g:i A" }}
+Duration: {{ appointment.duration_minutes }} minutes
+
+Patient: {{ appointment.patient.user.get_display_name }}
+Doctor: Dr. {{ appointment.healthcare_professional.user.get_display_name }}
+Specialization: {{ appointment.healthcare_professional.get_specialization_display }}
+
+Chief Complaint: {{ appointment.chief_complaint }}
+{% if appointment.symptoms %}Symptoms: {{ appointment.symptoms }}{% endif %}
+
+Google Meet Link: {{ appointment.google_meet_link }}
+
+For support, contact: +254 700 123 456
+    `;
+    
+    const blob = new Blob([appointmentInfo], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `appointment_{{ appointment.id }}_info.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+}
+
+// Close end consultation modal when clicking outside
+document.getElementById('endConsultationModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeEndModal();
+    }
+});
+
+// Initialize page
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Virtual consultation page loaded');
+    
+    // Auto-start timer if meeting is already in progress
+    if ({{ appointment.status }} === 'in_progress') {
+        startMeetingTimer();
+    }
+});
+</script>
+{% endblock %}
