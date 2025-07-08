@@ -4,6 +4,10 @@ from . import views
 app_name = 'services'
 
 urlpatterns = [
+    # Provider directory
+    path('providers/', views.provider_directory, name='provider_directory'),
+    path('provider/<int:provider_id>/', views.provider_detail, name='provider_detail'),
+    
     # Appointment booking
     path('book/<int:provider_id>/', views.book_appointment, name='book_appointment'),
     path('payment/<uuid:appointment_id>/', views.payment_page, name='payment_page'),
@@ -16,5 +20,6 @@ urlpatterns = [
     
     # AJAX endpoints
     path('api/provider/<int:provider_id>/availability/', views.get_provider_availability, name='get_provider_availability'),
+    path('api/provider/<int:provider_id>/info/', views.provider_quick_info, name='provider_quick_info'),
     path('api/service/<int:service_id>/pricing/<int:provider_id>/', views.get_service_pricing, name='get_service_pricing'),
 ]
