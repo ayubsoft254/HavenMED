@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.db.models import Q
+from django.db.models import Count, Q
 from django.http import JsonResponse
 from django.core.paginator import Paginator
 from .models import HealthcareProfessionalProfile, InstitutionProfile
@@ -390,3 +390,115 @@ def provider_directory(request):
     }
     
     return render(request, 'accounts/provider_directory.html', context)
+
+@login_required
+def patient_appointments(request):
+    """Patient appointments view - shows all appointments with filtering"""
+    if request.user.user_type != 'patient':
+        messages.error(request, 'Access denied')
+        return redirect('dashboard')
+    
+    user = request.user
+    profile = user.patient_profile
+    
+    # Import the Appointment model
+    from services.models import Appointment
+    
+    # Get all appointments for the patient
+    appointments = Appointment.objects.filter(
+        patient=profile
+    ).select_related(
+        'healthcare_professional__user',
+        'service_type'
+    ).prefetch_related('payment')
+    
+    # Apply filters
+    status_filter = request.GET.get('status', '')
+    appointment_type_filter = request.GET.get('appointment_type', '')
+    date_filter = request.GET.get('date_filter', '')
+    search_query = request.GET.get('q', '')
+    
+    if status_filter:
+        appointments = appointments.filter(status=status_filter)
+    
+    if appointment_type_filter:
+        appointments = appointments.filter(appointment_type=appointment_type_filter)
+    
+    if search_query:
+        appointments = appointments.filter(
+            Q(healthcare_professional__user__first_name__icontains=search_query) |
+            Q(healthcare_professional__user__last_name__icontains=search_query) |
+            Q(service_type__name__icontains=search_query) |
+            Q(chief_complaint__icontains=search_query)
+        )
+    
+    # Date filtering
+    today = timezone.now().date()
+    if date_filter == 'upcoming':
+        appointments = appointments.filter(appointment_date__gte=today)
+    elif date_filter == 'past':
+        appointments = appointments.filter(appointment_date__lt=today)
+    elif date_filter == 'today':
+        appointments = appointments.filter(appointment_date=today)
+    elif date_filter == 'this_week':
+        week_start = today - timedelta(days=today.weekday())
+        week_end = week_start + timedelta(days=6)
+        appointments = appointments.filter(appointment_date__range=[week_start, week_end])
+    elif date_filter == 'this_month':
+        appointments = appointments.filter(
+            appointment_date__year=today.year,
+            appointment_date__month=today.month
+        )
+    
+    # Sorting
+    sort_by = request.GET.get('sort', '-appointment_date')
+    valid_sorts = [
+        'appointment_date', '-appointment_date',
+        'appointment_time', '-appointment_time',
+        'status', '-status',
+        'created_at', '-created_at'
+    ]
+    
+    if sort_by in valid_sorts:
+        appointments = appointments.order_by(sort_by, '-appointment_time')
+    else:
+        appointments = appointments.order_by('-appointment_date', '-appointment_time')
+    
+    # Pagination
+    paginator = Paginator(appointments, 10)  # 10 appointments per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    # Get appointment statistics
+    total_appointments = appointments.count()
+    upcoming_count = appointments.filter(appointment_date__gte=today).count()
+    past_count = appointments.filter(appointment_date__lt=today).count()
+    
+    # Status counts
+    status_counts = appointments.values('status').annotate(count=Count('id'))
+    status_stats = {item['status']: item['count'] for item in status_counts}
+    
+    # Get filter choices
+    status_choices = Appointment.STATUS_CHOICES
+    appointment_type_choices = Appointment.APPOINTMENT_TYPE_CHOICES
+    
+    context = {
+        'appointments': page_obj,
+        'total_appointments': total_appointments,
+        'upcoming_count': upcoming_count,
+        'past_count': past_count,
+        'status_stats': status_stats,
+        'status_choices': status_choices,
+        'appointment_type_choices': appointment_type_choices,
+        'filters': {
+            'status': status_filter,
+            'appointment_type': appointment_type_filter,
+            'date_filter': date_filter,
+            'search_query': search_query,
+            'sort': sort_by,
+        },
+        'user': user,
+        'profile': profile,
+    }
+    
+    return render(request, 'accounts/dashboard/patient_appointments.html', context)
