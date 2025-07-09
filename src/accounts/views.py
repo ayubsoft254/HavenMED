@@ -6,7 +6,7 @@ from django.http import JsonResponse
 from django.core.paginator import Paginator
 from .models import HealthcareProfessionalProfile, InstitutionProfile
 from django.utils import timezone
-from datetime import timedelta
+from datetime import timedelta, date
 
 @login_required
 def dashboard_view(request):
@@ -33,25 +33,72 @@ def patient_dashboard(request):
     user = request.user
     profile = user.patient_profile
     
-    # Get recent activities, appointments, etc.
-    recent_appointments = []  # TODO: Implement appointments model
+    # Import the Appointment model
+    from services.models import Appointment
+    
+    # Get recent and upcoming appointments
+    today = timezone.now().date()
+    upcoming_appointments = Appointment.objects.filter(
+        patient=profile,
+        appointment_date__gte=today,
+        status__in=['confirmed', 'paid']
+    ).select_related(
+        'healthcare_professional__user',
+        'service_type'
+    ).order_by('appointment_date', 'appointment_time')[:5]
+    
+    # Get recent past appointments
+    past_appointments = Appointment.objects.filter(
+        patient=profile,
+        appointment_date__lt=today,
+        status__in=['completed', 'cancelled']
+    ).select_related(
+        'healthcare_professional__user',
+        'service_type'
+    ).order_by('-appointment_date', '-appointment_time')[:3]
+    
+    # Get appointment statistics
+    total_appointments = Appointment.objects.filter(patient=profile).count()
+    completed_appointments = Appointment.objects.filter(
+        patient=profile,
+        status='completed'
+    ).count()
+    
+    # Get next appointment
+    next_appointment = upcoming_appointments.first()
+    
+    # Get recommended doctors based on location and ratings
     recommended_doctors = HealthcareProfessionalProfile.objects.filter(
         user__is_approved=True,
         user__county=user.county,
         is_available=True
-    ).select_related('user').order_by('-average_rating')[:5]
+    ).select_related('user').order_by('-average_rating', '-total_reviews')[:6]
     
+    # Get nearby institutions
     nearby_institutions = InstitutionProfile.objects.filter(
         user__is_approved=True,
         user__county=user.county
-    ).select_related('user').order_by('-average_rating')[:5]
+    ).select_related('user').order_by('-average_rating', '-total_reviews')[:5]
+    
+    # Health metrics (mock data - can be expanded with actual health tracking)
+    health_metrics = {
+        'last_checkup': past_appointments.filter(
+            service_type__name__icontains='checkup'
+        ).first(),
+        'total_appointments': total_appointments,
+        'completed_appointments': completed_appointments,
+        'upcoming_appointments': upcoming_appointments.count(),
+    }
     
     context = {
         'user': user,
         'profile': profile,
-        'recent_appointments': recent_appointments,
+        'upcoming_appointments': upcoming_appointments,
+        'past_appointments': past_appointments,
+        'next_appointment': next_appointment,
         'recommended_doctors': recommended_doctors,
         'nearby_institutions': nearby_institutions,
+        'health_metrics': health_metrics,
     }
     
     return render(request, 'accounts/dashboard/patient_dashboard.html', context)
