@@ -38,24 +38,32 @@ def patient_dashboard(request):
     
     # Get recent and upcoming appointments
     today = timezone.now().date()
-    upcoming_appointments = Appointment.objects.filter(
+    
+    # Get all upcoming appointments first (before slicing)
+    upcoming_appointments_queryset = Appointment.objects.filter(
         patient=profile,
         appointment_date__gte=today,
         status__in=['confirmed', 'paid']
     ).select_related(
         'healthcare_professional__user',
         'service_type'
-    ).order_by('appointment_date', 'appointment_time')[:5]
+    ).order_by('appointment_date', 'appointment_time')
     
-    # Get recent past appointments
-    past_appointments = Appointment.objects.filter(
+    # Now slice to get the first 5
+    upcoming_appointments = upcoming_appointments_queryset[:5]
+    
+    # Get recent past appointments (before slicing)
+    past_appointments_queryset = Appointment.objects.filter(
         patient=profile,
         appointment_date__lt=today,
         status__in=['completed', 'cancelled']
     ).select_related(
         'healthcare_professional__user',
         'service_type'
-    ).order_by('-appointment_date', '-appointment_time')[:3]
+    ).order_by('-appointment_date', '-appointment_time')
+    
+    # Now slice to get the first 3
+    past_appointments = past_appointments_queryset[:3]
     
     # Get appointment statistics
     total_appointments = Appointment.objects.filter(patient=profile).count()
@@ -65,7 +73,15 @@ def patient_dashboard(request):
     ).count()
     
     # Get next appointment
-    next_appointment = upcoming_appointments.first()
+    next_appointment = upcoming_appointments_queryset.first()
+    
+    # Get last checkup from past appointments (filter before slicing)
+    last_checkup = Appointment.objects.filter(
+        patient=profile,
+        appointment_date__lt=today,
+        status='completed',
+        service_type__name__icontains='checkup'
+    ).order_by('-appointment_date', '-appointment_time').first()
     
     # Get recommended doctors based on location and ratings
     recommended_doctors = HealthcareProfessionalProfile.objects.filter(
@@ -80,14 +96,12 @@ def patient_dashboard(request):
         user__county=user.county
     ).select_related('user').order_by('-average_rating', '-total_reviews')[:5]
     
-    # Health metrics (mock data - can be expanded with actual health tracking)
+    # Health metrics
     health_metrics = {
-        'last_checkup': past_appointments.filter(
-            service_type__name__icontains='checkup'
-        ).first(),
+        'last_checkup': last_checkup,
         'total_appointments': total_appointments,
         'completed_appointments': completed_appointments,
-        'upcoming_appointments': upcoming_appointments.count(),
+        'upcoming_appointments': upcoming_appointments_queryset.count(),
     }
     
     context = {
