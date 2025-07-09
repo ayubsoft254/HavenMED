@@ -127,30 +127,104 @@ def healthcare_dashboard(request):
     user = request.user
     profile = user.healthcare_profile
     
+    # Import the services models
+    from services.models import Appointment, AvailabilitySlot, ServiceType, Payment
+    
     # Dashboard statistics
     today = timezone.now().date()
     week_ago = today - timedelta(days=7)
     month_ago = today - timedelta(days=30)
     
-    # TODO: Implement appointments, consultations models
+    # Get all appointments for this healthcare professional
+    all_appointments = Appointment.objects.filter(healthcare_professional=profile)
+    
+    # Calculate statistics
     stats = {
-        'total_patients': 0,  # profile.consultations.values('patient').distinct().count()
-        'appointments_today': 0,  # profile.appointments.filter(date=today).count()
-        'appointments_this_week': 0,  # profile.appointments.filter(date__gte=week_ago).count()
-        'total_consultations': 0,  # profile.consultations.count()
-        'revenue_this_month': 0,  # Calculate from consultations
+        'total_patients': all_appointments.values('patient').distinct().count(),
+        'appointments_today': all_appointments.filter(appointment_date=today).count(),
+        'appointments_this_week': all_appointments.filter(appointment_date__gte=week_ago).count(),
+        'total_consultations': all_appointments.filter(status='completed').count(),
+        'pending_appointments': all_appointments.filter(status='pending').count(),
+        'confirmed_appointments': all_appointments.filter(status__in=['confirmed', 'paid']).count(),
+        'revenue_this_month': all_appointments.filter(
+            appointment_date__gte=month_ago,
+            status='completed',
+            is_paid=True
+        ).aggregate(total=models.Sum('total_amount'))['total'] or 0,
+        'avg_rating': all_appointments.filter(
+            patient_rating__isnull=False
+        ).aggregate(avg=models.Avg('patient_rating'))['avg'] or 0,
     }
     
-    # Recent activities
-    recent_appointments = []  # TODO: Get from appointments model
-    pending_requests = []  # TODO: Get pending appointment requests
+    # Today's appointments
+    todays_appointments = all_appointments.filter(
+        appointment_date=today
+    ).select_related('patient__user', 'service_type').order_by('appointment_time')
+    
+    # Upcoming appointments (next 7 days)
+    upcoming_appointments = all_appointments.filter(
+        appointment_date__gt=today,
+        appointment_date__lte=today + timedelta(days=7),
+        status__in=['confirmed', 'paid']
+    ).select_related('patient__user', 'service_type').order_by('appointment_date', 'appointment_time')[:5]
+    
+    # Pending appointment requests
+    pending_requests = all_appointments.filter(
+        status='pending'
+    ).select_related('patient__user', 'service_type').order_by('created_at')[:5]
+    
+    # Recent reviews
+    recent_reviews = all_appointments.filter(
+        patient_rating__isnull=False,
+        patient_review__isnull=False
+    ).exclude(patient_review='').select_related('patient__user').order_by('-completed_at')[:5]
+    
+    # Get availability slots for this week
+    current_week_slots = AvailabilitySlot.objects.filter(
+        healthcare_professional=profile,
+        is_active=True
+    ).order_by('day_of_week', 'start_time')
+    
+    # Revenue data for the chart (last 6 months)
+    revenue_data = []
+    for i in range(6):
+        month_start = today.replace(day=1) - timedelta(days=i*30)
+        month_end = month_start + timedelta(days=30)
+        month_revenue = all_appointments.filter(
+            appointment_date__gte=month_start,
+            appointment_date__lt=month_end,
+            status='completed',
+            is_paid=True
+        ).aggregate(total=models.Sum('total_amount'))['total'] or 0
+        revenue_data.append({
+            'month': month_start.strftime('%b %Y'),
+            'revenue': float(month_revenue)
+        })
+    
+    revenue_data.reverse()  # Show chronologically
+    
+    # Appointment status breakdown
+    status_breakdown = all_appointments.values('status').annotate(
+        count=models.Count('id')
+    ).order_by('status')
+    
+    # Service type popularity
+    service_popularity = all_appointments.values('service_type__name').annotate(
+        count=models.Count('id')
+    ).order_by('-count')[:5]
     
     context = {
         'user': user,
         'profile': profile,
         'stats': stats,
-        'recent_appointments': recent_appointments,
+        'todays_appointments': todays_appointments,
+        'upcoming_appointments': upcoming_appointments,
         'pending_requests': pending_requests,
+        'recent_reviews': recent_reviews,
+        'current_week_slots': current_week_slots,
+        'revenue_data': revenue_data,
+        'status_breakdown': status_breakdown,
+        'service_popularity': service_popularity,
     }
     
     return render(request, 'accounts/dashboard/healthcare_dashboard.html', context)
