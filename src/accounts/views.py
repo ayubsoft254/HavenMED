@@ -141,6 +141,27 @@ def healthcare_dashboard(request):
     # Get all appointments for this healthcare professional
     all_appointments = Appointment.objects.filter(healthcare_professional=profile)
     
+    # Additional revenue statistics
+    revenue_stats = {
+        'total_revenue': all_appointments.filter(
+            status='completed',
+            is_paid=True
+        ).aggregate(total=Sum('total_amount'))['total'] or 0,
+        'revenue_last_month': all_appointments.filter(
+            appointment_date__gte=month_ago,
+            appointment_date__lt=first_day_of_month,
+            status='completed',
+            is_paid=True
+        ).aggregate(total=Sum('total_amount'))['total'] or 0,
+        'pending_revenue': all_appointments.filter(
+            status__in=['confirmed', 'paid'],
+            is_paid=False
+        ).aggregate(total=Sum('total_amount'))['total'] or 0,
+        'average_consultation_fee': all_appointments.filter(
+            status='completed'
+        ).aggregate(avg=Avg('consultation_fee'))['avg'] or 0,
+    }
+    
     # Calculate statistics
     stats = {
         'total_patients': all_appointments.values('patient').distinct().count(),
@@ -150,8 +171,8 @@ def healthcare_dashboard(request):
         'pending_appointments': all_appointments.filter(status='pending').count(),
         'confirmed_appointments': all_appointments.filter(status__in=['confirmed', 'paid']).count(),
         'revenue_this_month': all_appointments.filter(
-            appointment_date__gte=first_day_of_month,  # From first day of current month
-            appointment_date__lte=today,  # Up to today
+            appointment_date__gte=first_day_of_month,
+            appointment_date__lte=today,
             status='completed',
             is_paid=True
         ).aggregate(total=Sum('total_amount'))['total'] or 0,
@@ -159,6 +180,17 @@ def healthcare_dashboard(request):
             patient_rating__isnull=False
         ).aggregate(avg=Avg('patient_rating'))['avg'] or 0,
     }
+    
+    # Calculate revenue growth
+    current_month_revenue = stats['revenue_this_month']
+    last_month_revenue = revenue_stats['revenue_last_month']
+    
+    if last_month_revenue > 0:
+        revenue_growth = ((current_month_revenue - last_month_revenue) / last_month_revenue) * 100
+    else:
+        revenue_growth = 100 if current_month_revenue > 0 else 0
+    
+    stats['revenue_growth'] = revenue_growth
     
     # Today's appointments
     todays_appointments = all_appointments.filter(
@@ -191,6 +223,8 @@ def healthcare_dashboard(request):
     
     # Revenue data for the chart (last 6 months) - Fixed calculation
     revenue_data = []
+    max_revenue = 0
+    
     for i in range(6):
         # Calculate the start and end of each month properly
         if i == 0:
@@ -213,6 +247,10 @@ def healthcare_dashboard(request):
             is_paid=True
         ).aggregate(total=Sum('total_amount'))['total'] or 0
         
+        # Track maximum revenue for percentage calculation
+        if month_revenue > max_revenue:
+            max_revenue = month_revenue
+        
         revenue_data.append({
             'month': month_start.strftime('%b %Y'),
             'revenue': float(month_revenue),
@@ -225,6 +263,13 @@ def healthcare_dashboard(request):
     
     revenue_data.reverse()  # Show chronologically
     
+    # Calculate percentage widths for the chart
+    for month_data in revenue_data:
+        if max_revenue > 0:
+            month_data['percentage_width'] = (month_data['revenue'] / max_revenue) * 100
+        else:
+            month_data['percentage_width'] = 0
+    
     # Appointment status breakdown
     status_breakdown = all_appointments.values('status').annotate(
         count=Count('id')
@@ -234,38 +279,6 @@ def healthcare_dashboard(request):
     service_popularity = all_appointments.values('service_type__name').annotate(
         count=Count('id')
     ).order_by('-count')[:5]
-    
-    # Additional revenue statistics
-    revenue_stats = {
-        'total_revenue': all_appointments.filter(
-            status='completed',
-            is_paid=True
-        ).aggregate(total=Sum('total_amount'))['total'] or 0,
-        'revenue_last_month': all_appointments.filter(
-            appointment_date__gte=month_ago,
-            appointment_date__lt=first_day_of_month,
-            status='completed',
-            is_paid=True
-        ).aggregate(total=Sum('total_amount'))['total'] or 0,
-        'pending_revenue': all_appointments.filter(
-            status__in=['confirmed', 'paid'],
-            is_paid=False
-        ).aggregate(total=Sum('total_amount'))['total'] or 0,
-        'average_consultation_fee': all_appointments.filter(
-            status='completed'
-        ).aggregate(avg=Avg('consultation_fee'))['avg'] or 0,
-    }
-    
-    # Calculate revenue growth
-    current_month_revenue = stats['revenue_this_month']
-    last_month_revenue = revenue_stats['revenue_last_month']
-    
-    if last_month_revenue > 0:
-        revenue_growth = ((current_month_revenue - last_month_revenue) / last_month_revenue) * 100
-    else:
-        revenue_growth = 100 if current_month_revenue > 0 else 0
-    
-    stats['revenue_growth'] = revenue_growth
     
     context = {
         'user': user,
