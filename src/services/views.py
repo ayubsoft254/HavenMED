@@ -239,6 +239,8 @@ def filter_available_slots(provider, date, slots):
         if slot not in booked_appointments:
             # Also check if slot is not in the past
             slot_datetime = datetime.combine(date, slot)
+            # Make slot_datetime timezone-aware
+            slot_datetime = timezone.make_aware(slot_datetime)
             if slot_datetime > timezone.now():
                 available_slots.append(slot)
     
@@ -259,6 +261,8 @@ def is_slot_available(provider, date, time, duration_minutes):
     
     # Check if slot is in the past
     slot_datetime = datetime.combine(date, time)
+    # Make slot_datetime timezone-aware
+    slot_datetime = timezone.make_aware(slot_datetime)
     if slot_datetime <= timezone.now():
         return False
     
