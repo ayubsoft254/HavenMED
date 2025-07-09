@@ -1,8 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.db.models import Count, Q
-from django.db import models
+from django.db.models import Count, Q, Sum, Avg 
 from django.http import JsonResponse
 from django.core.paginator import Paginator
 from .models import HealthcareProfessionalProfile, InstitutionProfile
@@ -136,6 +135,9 @@ def healthcare_dashboard(request):
     week_ago = today - timedelta(days=7)
     month_ago = today - timedelta(days=30)
     
+    # Get the first day of current month for accurate monthly calculation
+    first_day_of_month = today.replace(day=1)
+    
     # Get all appointments for this healthcare professional
     all_appointments = Appointment.objects.filter(healthcare_professional=profile)
     
@@ -148,13 +150,14 @@ def healthcare_dashboard(request):
         'pending_appointments': all_appointments.filter(status='pending').count(),
         'confirmed_appointments': all_appointments.filter(status__in=['confirmed', 'paid']).count(),
         'revenue_this_month': all_appointments.filter(
-            appointment_date__gte=month_ago,
+            appointment_date__gte=first_day_of_month,  # From first day of current month
+            appointment_date__lte=today,  # Up to today
             status='completed',
             is_paid=True
-        ).aggregate(total=models.Sum('total_amount'))['total'] or 0,
+        ).aggregate(total=Sum('total_amount'))['total'] or 0,
         'avg_rating': all_appointments.filter(
             patient_rating__isnull=False
-        ).aggregate(avg=models.Avg('patient_rating'))['avg'] or 0,
+        ).aggregate(avg=Avg('patient_rating'))['avg'] or 0,
     }
     
     # Today's appointments
@@ -186,38 +189,89 @@ def healthcare_dashboard(request):
         is_active=True
     ).order_by('day_of_week', 'start_time')
     
-    # Revenue data for the chart (last 6 months)
+    # Revenue data for the chart (last 6 months) - Fixed calculation
     revenue_data = []
     for i in range(6):
-        month_start = today.replace(day=1) - timedelta(days=i*30)
-        month_end = month_start + timedelta(days=30)
+        # Calculate the start and end of each month properly
+        if i == 0:
+            # Current month
+            month_start = first_day_of_month
+            month_end = today
+        else:
+            # Previous months
+            month_start = (first_day_of_month - timedelta(days=i*30)).replace(day=1)
+            # Get the last day of the month
+            if month_start.month == 12:
+                month_end = month_start.replace(year=month_start.year + 1, month=1) - timedelta(days=1)
+            else:
+                month_end = month_start.replace(month=month_start.month + 1) - timedelta(days=1)
+        
         month_revenue = all_appointments.filter(
             appointment_date__gte=month_start,
-            appointment_date__lt=month_end,
+            appointment_date__lte=month_end,
             status='completed',
             is_paid=True
-        ).aggregate(total=models.Sum('total_amount'))['total'] or 0
+        ).aggregate(total=Sum('total_amount'))['total'] or 0
+        
         revenue_data.append({
             'month': month_start.strftime('%b %Y'),
-            'revenue': float(month_revenue)
+            'revenue': float(month_revenue),
+            'appointments': all_appointments.filter(
+                appointment_date__gte=month_start,
+                appointment_date__lte=month_end,
+                status='completed'
+            ).count()
         })
     
     revenue_data.reverse()  # Show chronologically
     
     # Appointment status breakdown
     status_breakdown = all_appointments.values('status').annotate(
-        count=models.Count('id')
+        count=Count('id')
     ).order_by('status')
     
     # Service type popularity
     service_popularity = all_appointments.values('service_type__name').annotate(
-        count=models.Count('id')
+        count=Count('id')
     ).order_by('-count')[:5]
+    
+    # Additional revenue statistics
+    revenue_stats = {
+        'total_revenue': all_appointments.filter(
+            status='completed',
+            is_paid=True
+        ).aggregate(total=Sum('total_amount'))['total'] or 0,
+        'revenue_last_month': all_appointments.filter(
+            appointment_date__gte=month_ago,
+            appointment_date__lt=first_day_of_month,
+            status='completed',
+            is_paid=True
+        ).aggregate(total=Sum('total_amount'))['total'] or 0,
+        'pending_revenue': all_appointments.filter(
+            status__in=['confirmed', 'paid'],
+            is_paid=False
+        ).aggregate(total=Sum('total_amount'))['total'] or 0,
+        'average_consultation_fee': all_appointments.filter(
+            status='completed'
+        ).aggregate(avg=Avg('consultation_fee'))['avg'] or 0,
+    }
+    
+    # Calculate revenue growth
+    current_month_revenue = stats['revenue_this_month']
+    last_month_revenue = revenue_stats['revenue_last_month']
+    
+    if last_month_revenue > 0:
+        revenue_growth = ((current_month_revenue - last_month_revenue) / last_month_revenue) * 100
+    else:
+        revenue_growth = 100 if current_month_revenue > 0 else 0
+    
+    stats['revenue_growth'] = revenue_growth
     
     context = {
         'user': user,
         'profile': profile,
         'stats': stats,
+        'revenue_stats': revenue_stats,
         'todays_appointments': todays_appointments,
         'upcoming_appointments': upcoming_appointments,
         'pending_requests': pending_requests,
