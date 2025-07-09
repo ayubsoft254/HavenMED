@@ -237,7 +237,10 @@ class Appointment(models.Model):
     @property
     def is_past_due(self):
         """Check if appointment is past due"""
-        return self.appointment_datetime < timezone.now()
+        appointment_dt = datetime.combine(self.appointment_date, self.appointment_time)
+        # Make appointment datetime timezone-aware
+        appointment_dt = timezone.make_aware(appointment_dt)
+        return appointment_dt < timezone.now()
     
     @property
     def can_be_cancelled(self):
@@ -247,7 +250,10 @@ class Appointment(models.Model):
     @property
     def time_until_appointment(self):
         """Get time remaining until appointment"""
-        return self.appointment_datetime - timezone.now()
+        appointment_dt = datetime.combine(self.appointment_date, self.appointment_time)
+        # Make appointment datetime timezone-aware
+        appointment_dt = timezone.make_aware(appointment_dt)
+        return appointment_dt - timezone.now()
     
     def generate_google_meet_link(self):
         """Generate Google Meet link for virtual consultations"""
