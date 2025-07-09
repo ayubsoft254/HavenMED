@@ -173,7 +173,7 @@ def payment_page(request, appointment_id):
                 payment.save()
                 
                 messages.success(request, 'M-Pesa payment initiated. Please check your phone to complete payment.')
-                return redirect('payment_status', payment_id=payment.id)
+                return redirect('services:payment_status', payment_id=payment.id)
             else:
                 messages.error(request, f'Payment failed: {result["message"]}')
         
