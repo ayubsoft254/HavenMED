@@ -17,6 +17,9 @@
     <i class="fas fa-chart-bar mr-2"></i>Analytics
 </a>
 <a href="#" class="flex items-center px-4 py-2 text-sm font-medium text-gray-600 hover:text-blue-600 hover:bg-gray-50 rounded-md">
+    <i class="fas fa-clock mr-2"></i>Availability
+</a>
+<a href="{% url 'accounts:profile_edit' %}" class="flex items-center px-4 py-2 text-sm font-medium text-gray-600 hover:text-blue-600 hover:bg-gray-50 rounded-md">
     <i class="fas fa-cog mr-2"></i>Settings
 </a>
 {% endblock %}
@@ -36,7 +39,7 @@
 {% endif %}
 
 <!-- Quick Stats -->
-<div class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
+<div class="grid grid-cols-1 md:grid-cols-6 gap-6 mb-8">
     <div class="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-xl p-6 shadow-lg">
         <div class="flex items-center justify-between">
             <div>
@@ -52,7 +55,7 @@
     <div class="bg-gradient-to-br from-green-500 to-green-600 text-white rounded-xl p-6 shadow-lg">
         <div class="flex items-center justify-between">
             <div>
-                <p class="text-green-100 text-sm font-medium">Today's Appointments</p>
+                <p class="text-green-100 text-sm font-medium">Today</p>
                 <p class="text-white text-3xl font-bold">{{ stats.appointments_today }}</p>
             </div>
             <div class="bg-white/20 rounded-full p-3">
@@ -76,11 +79,11 @@
     <div class="bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-xl p-6 shadow-lg">
         <div class="flex items-center justify-between">
             <div>
-                <p class="text-orange-100 text-sm font-medium">Total Consultations</p>
+                <p class="text-orange-100 text-sm font-medium">Completed</p>
                 <p class="text-white text-3xl font-bold">{{ stats.total_consultations }}</p>
             </div>
             <div class="bg-white/20 rounded-full p-3">
-                <i class="fas fa-stethoscope text-white text-xl"></i>
+                <i class="fas fa-check-circle text-white text-xl"></i>
             </div>
         </div>
     </div>
@@ -89,10 +92,22 @@
         <div class="flex items-center justify-between">
             <div>
                 <p class="text-teal-100 text-sm font-medium">Monthly Revenue</p>
-                <p class="text-white text-3xl font-bold">KES {{ stats.revenue_this_month|floatformat:0 }}</p>
+                <p class="text-white text-3xl font-bold">{{ stats.revenue_this_month|floatformat:0 }}</p>
             </div>
             <div class="bg-white/20 rounded-full p-3">
                 <i class="fas fa-money-bill-wave text-white text-xl"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-gradient-to-br from-indigo-500 to-indigo-600 text-white rounded-xl p-6 shadow-lg">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-indigo-100 text-sm font-medium">Avg Rating</p>
+                <p class="text-white text-3xl font-bold">{{ stats.avg_rating|floatformat:1 }}</p>
+            </div>
+            <div class="bg-white/20 rounded-full p-3">
+                <i class="fas fa-star text-white text-xl"></i>
             </div>
         </div>
     </div>
@@ -108,37 +123,91 @@
                 <div class="flex items-center justify-between">
                     <h3 class="text-lg font-semibold text-gray-900">Today's Schedule</h3>
                     <div class="flex items-center space-x-2">
+                        <span class="text-sm text-gray-500">{{ todays_appointments.count }} appointments</span>
                         <button class="text-blue-600 hover:text-blue-700 text-sm font-medium">View Calendar</button>
-                        <button class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700">
-                            <i class="fas fa-plus mr-2"></i>Add Appointment
-                        </button>
                     </div>
                 </div>
             </div>
             <div class="p-6">
-                {% if recent_appointments %}
+                {% if todays_appointments %}
                     <div class="space-y-4">
-                        {% for appointment in recent_appointments %}
-                            <div class="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg border-l-4 border-blue-500">
-                                <div class="text-center">
-                                    <p class="text-sm font-medium text-gray-900">{{ appointment.time|time:"g:i A" }}</p>
-                                    <p class="text-xs text-gray-500">{{ appointment.duration }}min</p>
+                        {% for appointment in todays_appointments %}
+                            <div class="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg border-l-4 
+                                {% if appointment.status == 'confirmed' %}border-blue-500
+                                {% elif appointment.status == 'paid' %}border-green-500
+                                {% elif appointment.status == 'pending' %}border-yellow-500
+                                {% elif appointment.status == 'in_progress' %}border-purple-500
+                                {% else %}border-gray-500{% endif %}">
+                                <div class="text-center min-w-0 flex-shrink-0">
+                                    <p class="text-sm font-medium text-gray-900">{{ appointment.appointment_time|time:"g:i A" }}</p>
+                                    <p class="text-xs text-gray-500">{{ appointment.duration_minutes }}min</p>
                                 </div>
-                                <img src="{{ appointment.patient.user.get_profile_photo_url }}" alt="{{ appointment.patient.user.get_display_name }}" class="w-12 h-12 rounded-full object-cover">
-                                <div class="flex-1">
-                                    <p class="font-medium text-gray-900">{{ appointment.patient.user.get_display_name }}</p>
-                                    <p class="text-sm text-gray-600">{{ appointment.appointment_type }}</p>
-                                    <p class="text-sm text-gray-500">{{ appointment.notes|truncatewords:8 }}</p>
+                                <img src="{{ appointment.patient.user.get_profile_photo_url }}" 
+                                     alt="{{ appointment.patient.user.get_display_name }}" 
+                                     class="w-12 h-12 rounded-full object-cover flex-shrink-0">
+                                <div class="flex-1 min-w-0">
+                                    <p class="font-medium text-gray-900 truncate">{{ appointment.patient.user.get_display_name }}</p>
+                                    <p class="text-sm text-gray-600">{{ appointment.service_type.name }}</p>
+                                    <p class="text-sm text-gray-500 truncate">{{ appointment.chief_complaint|truncatewords:5 }}</p>
+                                    <div class="flex items-center mt-1">
+                                        {% if appointment.appointment_type == 'virtual' %}
+                                            <i class="fas fa-video text-green-500 text-sm mr-1"></i>
+                                            <span class="text-xs text-green-600">Virtual</span>
+                                        {% elif appointment.appointment_type == 'home_visit' %}
+                                            <i class="fas fa-home text-blue-500 text-sm mr-1"></i>
+                                            <span class="text-xs text-blue-600">Home Visit</span>
+                                        {% else %}
+                                            <i class="fas fa-clinic-medical text-purple-500 text-sm mr-1"></i>
+                                            <span class="text-xs text-purple-600">In-Person</span>
+                                        {% endif %}
+                                        <span class="ml-2 px-2 py-1 text-xs font-medium rounded-full
+                                            {% if appointment.status == 'confirmed' %}bg-blue-100 text-blue-600
+                                            {% elif appointment.status == 'paid' %}bg-green-100 text-green-600
+                                            {% elif appointment.status == 'pending' %}bg-yellow-100 text-yellow-600
+                                            {% elif appointment.status == 'in_progress' %}bg-purple-100 text-purple-600
+                                            {% else %}bg-gray-100 text-gray-600{% endif %}">
+                                            {{ appointment.get_status_display }}
+                                        </span>
+                                    </div>
                                 </div>
-                                <div class="flex items-center space-x-2">
-                                    {% if appointment.is_virtual %}
-                                        <button class="bg-green-100 text-green-600 px-3 py-1 rounded-lg text-sm font-medium hover:bg-green-200">
-                                            <i class="fas fa-video mr-1"></i>Join Call
-                                        </button>
+                                <div class="flex items-center space-x-2 flex-shrink-0">
+                                    {% if appointment.appointment_type == 'virtual' and appointment.status == 'paid' %}
+                                        <a href="{% url 'services:join_virtual_consultation' appointment.id %}" 
+                                           class="bg-green-100 text-green-600 px-3 py-1 rounded-lg text-sm font-medium hover:bg-green-200 transition-colors duration-200">
+                                            <i class="fas fa-video mr-1"></i>Start
+                                        </a>
                                     {% endif %}
-                                    <button class="text-gray-400 hover:text-gray-600">
-                                        <i class="fas fa-ellipsis-h"></i>
-                                    </button>
+                                    <a href="{% url 'services:appointment_detail' appointment.id %}" 
+                                       class="text-gray-400 hover:text-gray-600 p-1">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <div class="relative">
+                                        <button class="text-gray-400 hover:text-gray-600 p-1" onclick="toggleAppointmentMenu('{{ appointment.id }}')">
+                                            <i class="fas fa-ellipsis-v"></i>
+                                        </button>
+                                        <div id="menu-{{ appointment.id }}" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10">
+                                            <div class="py-1">
+                                                <a href="{% url 'services:appointment_detail' appointment.id %}" 
+                                                   class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">View Details</a>
+                                                {% if appointment.status == 'pending' %}
+                                                    <button class="block w-full text-left px-4 py-2 text-sm text-green-700 hover:bg-green-50"
+                                                            onclick="confirmAppointment('{{ appointment.id }}')">
+                                                        Confirm
+                                                    </button>
+                                                {% endif %}
+                                                <button class="block w-full text-left px-4 py-2 text-sm text-blue-700 hover:bg-blue-50"
+                                                        onclick="rescheduleAppointment('{{ appointment.id }}')">
+                                                    Reschedule
+                                                </button>
+                                                {% if appointment.can_be_cancelled %}
+                                                    <button class="block w-full text-left px-4 py-2 text-sm text-red-700 hover:bg-red-50"
+                                                            onclick="cancelAppointment('{{ appointment.id }}')">
+                                                        Cancel
+                                                    </button>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         {% endfor %}
@@ -147,7 +216,7 @@
                     <div class="text-center py-8">
                         <i class="fas fa-calendar-alt text-gray-300 text-4xl mb-4"></i>
                         <p class="text-gray-600 mb-4">No appointments scheduled for today</p>
-                        <button class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
+                        <button class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200">
                             Set Your Availability
                         </button>
                     </div>
@@ -156,47 +225,92 @@
         </div>
 
         <!-- Pending Requests -->
+        {% if pending_requests %}
         <div class="bg-white rounded-xl shadow-sm border border-gray-200">
             <div class="p-6 border-b border-gray-200">
-                <h3 class="text-lg font-semibold text-gray-900">Pending Appointment Requests</h3>
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-semibold text-gray-900">Pending Appointment Requests</h3>
+                    <span class="bg-yellow-100 text-yellow-600 px-2 py-1 rounded-full text-sm font-medium">
+                        {{ stats.pending_appointments }}
+                    </span>
+                </div>
             </div>
             <div class="p-6">
-                {% if pending_requests %}
-                    <div class="space-y-4">
-                        {% for request in pending_requests %}
-                            <div class="flex items-center space-x-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-                                <img src="{{ request.patient.user.get_profile_photo_url }}" alt="{{ request.patient.user.get_display_name }}" class="w-12 h-12 rounded-full object-cover">
-                                <div class="flex-1">
+                <div class="space-y-4">
+                    {% for request in pending_requests %}
+                        <div class="flex items-center space-x-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                            <img src="{{ request.patient.user.get_profile_photo_url }}" 
+                                 alt="{{ request.patient.user.get_display_name }}" 
+                                 class="w-12 h-12 rounded-full object-cover">
+                            <div class="flex-1">
+                                <div class="flex items-center space-x-2 mb-1">
                                     <p class="font-medium text-gray-900">{{ request.patient.user.get_display_name }}</p>
-                                    <p class="text-sm text-gray-600">Requested: {{ request.preferred_date }} at {{ request.preferred_time }}</p>
-                                    <p class="text-sm text-gray-500">{{ request.reason|truncatewords:10 }}</p>
-                                    <p class="text-xs text-gray-400">{{ request.created_at|timesince }} ago</p>
+                                    <span class="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-600 rounded-full">
+                                        {{ request.get_priority_display }}
+                                    </span>
                                 </div>
-                                <div class="flex items-center space-x-2">
-                                    <button class="bg-green-600 text-white px-3 py-1 rounded-lg text-sm font-medium hover:bg-green-700">
-                                        Accept
-                                    </button>
-                                    <button class="bg-gray-200 text-gray-600 px-3 py-1 rounded-lg text-sm font-medium hover:bg-gray-300">
-                                        Reschedule
-                                    </button>
-                                    <button class="bg-red-100 text-red-600 px-3 py-1 rounded-lg text-sm font-medium hover:bg-red-200">
-                                        Decline
-                                    </button>
-                                </div>
+                                <p class="text-sm text-gray-600">{{ request.service_type.name }}</p>
+                                <p class="text-sm text-gray-600">Requested: {{ request.appointment_date|date:"M j" }} at {{ request.appointment_time|time:"g:i A" }}</p>
+                                <p class="text-sm text-gray-500 mt-1">{{ request.chief_complaint|truncatewords:10 }}</p>
+                                <p class="text-xs text-gray-400 mt-1">{{ request.created_at|timesince }} ago</p>
                             </div>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    <div class="text-center py-8">
-                        <i class="fas fa-clock text-gray-300 text-4xl mb-4"></i>
-                        <p class="text-gray-600">No pending requests</p>
-                    </div>
-                {% endif %}
+                            <div class="flex items-center space-x-2">
+                                <button class="bg-green-600 text-white px-3 py-1 rounded-lg text-sm font-medium hover:bg-green-700 transition-colors duration-200"
+                                        onclick="confirmAppointment('{{ request.id }}')">
+                                    Accept
+                                </button>
+                                <button class="bg-blue-100 text-blue-600 px-3 py-1 rounded-lg text-sm font-medium hover:bg-blue-200 transition-colors duration-200"
+                                        onclick="rescheduleAppointment('{{ request.id }}')">
+                                    Reschedule
+                                </button>
+                                <button class="bg-red-100 text-red-600 px-3 py-1 rounded-lg text-sm font-medium hover:bg-red-200 transition-colors duration-200"
+                                        onclick="declineAppointment('{{ request.id }}')">
+                                    Decline
+                                </button>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
             </div>
         </div>
+        {% endif %}
+
+        <!-- Upcoming Appointments -->
+        {% if upcoming_appointments %}
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+            <div class="p-6 border-b border-gray-200">
+                <h3 class="text-lg font-semibold text-gray-900">Upcoming Appointments</h3>
+            </div>
+            <div class="p-6">
+                <div class="space-y-4">
+                    {% for appointment in upcoming_appointments %}
+                        <div class="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+                            <img src="{{ appointment.patient.user.get_profile_photo_url }}" 
+                                 alt="{{ appointment.patient.user.get_display_name }}" 
+                                 class="w-10 h-10 rounded-full object-cover">
+                            <div class="flex-1">
+                                <p class="font-medium text-gray-900">{{ appointment.patient.user.get_display_name }}</p>
+                                <p class="text-sm text-gray-600">{{ appointment.service_type.name }}</p>
+                                <p class="text-sm text-gray-500">{{ appointment.appointment_date|date:"M j, Y" }} at {{ appointment.appointment_time|time:"g:i A" }}</p>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="px-2 py-1 text-xs font-medium bg-green-100 text-green-600 rounded-full">
+                                    {{ appointment.get_status_display }}
+                                </span>
+                                <a href="{% url 'services:appointment_detail' appointment.id %}" 
+                                   class="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                                    View
+                                </a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
     </div>
 
-    <!-- Right Column - Profile & Tools -->
+    <!-- Right Column - Profile & Analytics -->
     <div class="space-y-8">
         <!-- Professional Summary -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-200">
@@ -205,7 +319,9 @@
             </div>
             <div class="p-6">
                 <div class="text-center mb-6">
-                    <img src="{{ user.get_profile_photo_url }}" alt="{{ user.get_display_name }}" class="w-20 h-20 rounded-full object-cover mx-auto mb-4 border-4 border-blue-100">
+                    <img src="{{ user.get_profile_photo_url }}" 
+                         alt="{{ user.get_display_name }}" 
+                         class="w-20 h-20 rounded-full object-cover mx-auto mb-4 border-4 border-blue-100">
                     <h4 class="font-semibold text-gray-900">Dr. {{ user.get_display_name }}</h4>
                     <p class="text-gray-600">{{ profile.get_specialization_display }}</p>
                     <div class="flex items-center justify-center mt-2">
@@ -213,7 +329,7 @@
                             {% for i in "12345" %}
                                 <i class="fas fa-star {% if profile.average_rating >= forloop.counter %}text-yellow-400{% else %}text-gray-300{% endif %} text-sm"></i>
                             {% endfor %}
-                            <span class="ml-2 text-sm text-gray-600">({{ profile.average_rating }}/5.0)</span>
+                            <span class="ml-2 text-sm text-gray-600">({{ profile.average_rating|floatformat:1 }}/5.0)</span>
                         </div>
                     </div>
                 </div>
@@ -236,6 +352,10 @@
                         <span class="{% if profile.is_available %}text-green-600{% else %}text-red-600{% endif %} font-medium">
                             {% if profile.is_available %}Available{% else %}Unavailable{% endif %}
                         </span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-600">Total Reviews</span>
+                        <span class="text-gray-900 font-medium">{{ profile.total_reviews }}</span>
                     </div>
                 </div>
                 
@@ -262,9 +382,10 @@
                 </div>
                 
                 <div class="mt-6">
-                    <button class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors duration-200">
+                    <a href="{% url 'accounts:profile_edit' %}" 
+                       class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors duration-200 block text-center">
                         Edit Profile
-                    </button>
+                    </a>
                 </div>
             </div>
         </div>
@@ -286,8 +407,8 @@
                     
                     <button class="w-full flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200">
                         <div class="flex items-center">
-                            <i class="fas fa-user-plus text-green-500 mr-3"></i>
-                            <span class="text-gray-700">Add New Patient</span>
+                            <i class="fas fa-clock text-green-500 mr-3"></i>
+                            <span class="text-gray-700">Set Availability</span>
                         </div>
                         <i class="fas fa-chevron-right text-gray-400"></i>
                     </button>
@@ -307,11 +428,20 @@
                         </div>
                         <i class="fas fa-chevron-right text-gray-400"></i>
                     </button>
+                    
+                    <button class="w-full flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200">
+                        <div class="flex items-center">
+                            <i class="fas fa-money-bill-wave text-teal-500 mr-3"></i>
+                            <span class="text-gray-700">Financial Summary</span>
+                        </div>
+                        <i class="fas fa-chevron-right text-gray-400"></i>
+                    </button>
                 </div>
             </div>
         </div>
 
         <!-- Recent Reviews -->
+        {% if recent_reviews %}
         <div class="bg-white rounded-xl shadow-sm border border-gray-200">
             <div class="p-6 border-b border-gray-200">
                 <div class="flex items-center justify-between">
@@ -320,33 +450,21 @@
                 </div>
             </div>
             <div class="p-6">
-                <!-- Sample reviews - replace with actual data -->
                 <div class="space-y-4">
-                    <div class="border-b border-gray-100 pb-4 last:border-b-0 last:pb-0">
-                        <div class="flex items-center mb-2">
-                            <div class="flex items-center">
-                                {% for i in "12345" %}
-                                    <i class="fas fa-star text-yellow-400 text-sm"></i>
-                                {% endfor %}
+                    {% for review in recent_reviews %}
+                        <div class="border-b border-gray-100 pb-4 last:border-b-0 last:pb-0">
+                            <div class="flex items-center mb-2">
+                                <div class="flex items-center">
+                                    {% for i in "12345" %}
+                                        <i class="fas fa-star {% if review.patient_rating >= forloop.counter %}text-yellow-400{% else %}text-gray-300{% endif %} text-sm"></i>
+                                    {% endfor %}
+                                </div>
+                                <span class="ml-2 text-sm text-gray-600">{{ review.completed_at|timesince }} ago</span>
                             </div>
-                            <span class="ml-2 text-sm text-gray-600">2 days ago</span>
+                            <p class="text-gray-700 text-sm">"{{ review.patient_review|truncatewords:20 }}"</p>
+                            <p class="text-gray-500 text-xs mt-1">- {{ review.patient.user.get_display_name }}</p>
                         </div>
-                        <p class="text-gray-700 text-sm">"Excellent consultation. Very professional and thorough explanation."</p>
-                        <p class="text-gray-500 text-xs mt-1">- Patient J.M.</p>
-                    </div>
-                    
-                    <div class="border-b border-gray-100 pb-4 last:border-b-0 last:pb-0">
-                        <div class="flex items-center mb-2">
-                            <div class="flex items-center">
-                                {% for i in "12345" %}
-                                    <i class="fas fa-star {% if forloop.counter <= 4 %}text-yellow-400{% else %}text-gray-300{% endif %} text-sm"></i>
-                                {% endfor %}
-                            </div>
-                            <span class="ml-2 text-sm text-gray-600">1 week ago</span>
-                        </div>
-                        <p class="text-gray-700 text-sm">"Great experience with virtual consultation. Highly recommend!"</p>
-                        <p class="text-gray-500 text-xs mt-1">- Patient A.K.</p>
-                    </div>
+                    {% endfor %}
                 </div>
                 
                 <div class="mt-4">
@@ -356,6 +474,124 @@
                 </div>
             </div>
         </div>
+        {% endif %}
+
+        <!-- Current Week Schedule -->
+        {% if current_week_slots %}
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+            <div class="p-6 border-b border-gray-200">
+                <h3 class="text-lg font-semibold text-gray-900">Weekly Schedule</h3>
+            </div>
+            <div class="p-6">
+                <div class="space-y-2">
+                    {% for slot in current_week_slots %}
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="text-gray-600">{{ slot.get_day_of_week_display }}</span>
+                            <span class="text-gray-900 font-medium">{{ slot.start_time|time:"g:i A" }} - {{ slot.end_time|time:"g:i A" }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+                <div class="mt-4">
+                    <button class="w-full text-blue-600 hover:text-blue-700 text-sm font-medium">
+                        Manage Schedule
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endif %}
     </div>
 </div>
+
+<script>
+function toggleAppointmentMenu(appointmentId) {
+    const menu = document.getElementById('menu-' + appointmentId);
+    const allMenus = document.querySelectorAll('[id^="menu-"]');
+    
+    // Close all other menus
+    allMenus.forEach(m => {
+        if (m !== menu) {
+            m.classList.add('hidden');
+        }
+    });
+    
+    // Toggle current menu
+    menu.classList.toggle('hidden');
+}
+
+function confirmAppointment(appointmentId) {
+    if (confirm('Are you sure you want to confirm this appointment?')) {
+        // Implementation for confirming appointment
+        fetch(`/services/appointment/${appointmentId}/confirm/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error confirming appointment: ' + data.message);
+            }
+        });
+    }
+}
+
+function rescheduleAppointment(appointmentId) {
+    // Implementation for rescheduling appointment
+    alert('Reschedule functionality to be implemented');
+}
+
+function cancelAppointment(appointmentId) {
+    if (confirm('Are you sure you want to cancel this appointment?')) {
+        // Implementation for cancelling appointment
+        fetch(`/services/appointment/${appointmentId}/cancel/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error cancelling appointment: ' + data.message);
+            }
+        });
+    }
+}
+
+function declineAppointment(appointmentId) {
+    if (confirm('Are you sure you want to decline this appointment?')) {
+        // Implementation for declining appointment
+        fetch(`/services/appointment/${appointmentId}/decline/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error declining appointment: ' + data.message);
+            }
+        });
+    }
+}
+
+// Close menus when clicking outside
+document.addEventListener('click', function(event) {
+    if (!event.target.closest('[onclick^="toggleAppointmentMenu"]')) {
+        const allMenus = document.querySelectorAll('[id^="menu-"]');
+        allMenus.forEach(m => m.classList.add('hidden'));
+    }
+});
+</script>
 {% endblock %}
