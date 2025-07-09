@@ -8,5 +8,5 @@ urlpatterns = [
     path('dashboard/institution/', views.institution_dashboard, name='institution_dashboard'),
     path('dashboard/profile/edit/', views.profile_edit, name='profile_edit'),
     path('dashboard/search/', views.dashboard_search, name='dashboard_search'),
-    path('providers/', views.provider_directory, name='provider_directory'),
+    path('dashboard/appointments/', views.patient_appointments, name='patient_appointments'),   
 ]
