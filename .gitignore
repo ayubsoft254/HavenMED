@@ -112,7 +112,6 @@ deploy-to-server.ps1
 deploy.sh
 
 # Production artifacts
-staticfiles/
 *.pid
 *.sock
 
