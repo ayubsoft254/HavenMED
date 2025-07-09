@@ -7,6 +7,7 @@ from django.core.paginator import Paginator
 from .models import HealthcareProfessionalProfile, InstitutionProfile
 from django.utils import timezone
 from datetime import timedelta, date
+from decimal import Decimal  # Add this import
 
 @login_required
 def dashboard_view(request):
@@ -146,20 +147,20 @@ def healthcare_dashboard(request):
         'total_revenue': all_appointments.filter(
             status='completed',
             is_paid=True
-        ).aggregate(total=Sum('total_amount'))['total'] or 0,
+        ).aggregate(total=Sum('total_amount'))['total'] or Decimal('0.00'),
         'revenue_last_month': all_appointments.filter(
             appointment_date__gte=month_ago,
             appointment_date__lt=first_day_of_month,
             status='completed',
             is_paid=True
-        ).aggregate(total=Sum('total_amount'))['total'] or 0,
+        ).aggregate(total=Sum('total_amount'))['total'] or Decimal('0.00'),
         'pending_revenue': all_appointments.filter(
             status__in=['confirmed', 'paid'],
             is_paid=False
-        ).aggregate(total=Sum('total_amount'))['total'] or 0,
+        ).aggregate(total=Sum('total_amount'))['total'] or Decimal('0.00'),
         'average_consultation_fee': all_appointments.filter(
             status='completed'
-        ).aggregate(avg=Avg('consultation_fee'))['avg'] or 0,
+        ).aggregate(avg=Avg('consultation_fee'))['avg'] or Decimal('0.00'),
     }
     
     # Calculate statistics
@@ -175,20 +176,22 @@ def healthcare_dashboard(request):
             appointment_date__lte=today,
             status='completed',
             is_paid=True
-        ).aggregate(total=Sum('total_amount'))['total'] or 0,
+        ).aggregate(total=Sum('total_amount'))['total'] or Decimal('0.00'),
         'avg_rating': all_appointments.filter(
             patient_rating__isnull=False
         ).aggregate(avg=Avg('patient_rating'))['avg'] or 0,
     }
     
-    # Calculate revenue growth
+    # Calculate revenue growth - Fix the division issue
     current_month_revenue = stats['revenue_this_month']
     last_month_revenue = revenue_stats['revenue_last_month']
     
     if last_month_revenue > 0:
+        # Convert both to Decimal for proper division
         revenue_growth = ((current_month_revenue - last_month_revenue) / last_month_revenue) * 100
+        revenue_growth = float(revenue_growth)  # Convert to float for display
     else:
-        revenue_growth = 100 if current_month_revenue > 0 else 0
+        revenue_growth = 100.0 if current_month_revenue > 0 else 0.0
     
     stats['revenue_growth'] = revenue_growth
     
@@ -223,7 +226,7 @@ def healthcare_dashboard(request):
     
     # Revenue data for the chart (last 6 months) - Fixed calculation
     revenue_data = []
-    max_revenue = 0
+    max_revenue = Decimal('0.00')
     
     for i in range(6):
         # Calculate the start and end of each month properly
@@ -245,7 +248,7 @@ def healthcare_dashboard(request):
             appointment_date__lte=month_end,
             status='completed',
             is_paid=True
-        ).aggregate(total=Sum('total_amount'))['total'] or 0
+        ).aggregate(total=Sum('total_amount'))['total'] or Decimal('0.00')
         
         # Track maximum revenue for percentage calculation
         if month_revenue > max_revenue:
@@ -253,7 +256,7 @@ def healthcare_dashboard(request):
         
         revenue_data.append({
             'month': month_start.strftime('%b %Y'),
-            'revenue': float(month_revenue),
+            'revenue': month_revenue,  # Keep as Decimal for now
             'appointments': all_appointments.filter(
                 appointment_date__gte=month_start,
                 appointment_date__lte=month_end,
@@ -266,9 +269,22 @@ def healthcare_dashboard(request):
     # Calculate percentage widths for the chart
     for month_data in revenue_data:
         if max_revenue > 0:
-            month_data['percentage_width'] = (month_data['revenue'] / max_revenue) * 100
+            # Both are Decimal, so division works correctly
+            percentage = (month_data['revenue'] / max_revenue) * 100
+            month_data['percentage_width'] = float(percentage)
         else:
             month_data['percentage_width'] = 0
+        
+        # Convert revenue to float for template display
+        month_data['revenue'] = float(month_data['revenue'])
+    
+    # Convert revenue stats to float for template display
+    for key, value in revenue_stats.items():
+        if isinstance(value, Decimal):
+            revenue_stats[key] = float(value)
+    
+    # Convert stats revenue to float for template display
+    stats['revenue_this_month'] = float(stats['revenue_this_month'])
     
     # Appointment status breakdown
     status_breakdown = all_appointments.values('status').annotate(
