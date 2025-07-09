@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Count, Q
+from django.db import models
 from django.http import JsonResponse
 from django.core.paginator import Paginator
 from .models import HealthcareProfessionalProfile, InstitutionProfile

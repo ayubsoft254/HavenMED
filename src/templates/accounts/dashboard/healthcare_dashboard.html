@@ -19,7 +19,7 @@
 <a href="#" class="flex items-center px-4 py-2 text-sm font-medium text-gray-600 hover:text-blue-600 hover:bg-gray-50 rounded-md">
     <i class="fas fa-clock mr-2"></i>Availability
 </a>
-<a href="{% url 'accounts:profile_edit' %}" class="flex items-center px-4 py-2 text-sm font-medium text-gray-600 hover:text-blue-600 hover:bg-gray-50 rounded-md">
+<a href="{% url 'profile_edit' %}" class="flex items-center px-4 py-2 text-sm font-medium text-gray-600 hover:text-blue-600 hover:bg-gray-50 rounded-md">
     <i class="fas fa-cog mr-2"></i>Settings
 </a>
 {% endblock %}
@@ -382,7 +382,7 @@
                 </div>
                 
                 <div class="mt-6">
-                    <a href="{% url 'accounts:profile_edit' %}" 
+                    <a href="{% url 'profile_edit' %}" 
                        class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors duration-200 block text-center">
                         Edit Profile
                     </a>
