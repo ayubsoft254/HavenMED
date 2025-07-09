@@ -21,7 +21,7 @@ def book_appointment(request, provider_id):
     
     if request.user.user_type != 'patient':
         messages.error(request, 'Only patients can book appointments.')
-        return redirect('provider_directory')
+        return redirect('services:provider_directory')
     
     patient_profile = request.user.patient_profile
     service_types = ServiceType.objects.filter(is_active=True)
@@ -54,6 +54,19 @@ def book_appointment(request, provider_id):
         visit_address = request.POST.get('visit_address', '')
         visit_instructions = request.POST.get('visit_instructions', '')
         
+        # Validate required fields
+        if not all([service_type_id, appointment_type, appointment_date, appointment_time, chief_complaint, patient_phone]):
+            messages.error(request, 'Please fill in all required fields.')
+            context = {
+                'provider': provider,
+                'service_types': service_types,
+                'available_slots': available_slots,
+                'patient_profile': patient_profile,
+                'today': today,
+                'max_date': end_date,
+            }
+            return render(request, 'services/book_appointment.html', context)
+        
         try:
             service_type = ServiceType.objects.get(id=service_type_id)
             appointment_date = datetime.strptime(appointment_date, '%Y-%m-%d').date()
@@ -62,11 +75,15 @@ def book_appointment(request, provider_id):
             # Validate slot availability
             if not is_slot_available(provider, appointment_date, appointment_time, service_type.duration_minutes):
                 messages.error(request, 'Selected time slot is not available.')
-                return render(request, 'services/book_appointment.html', {
+                context = {
                     'provider': provider,
                     'service_types': service_types,
                     'available_slots': available_slots,
-                })
+                    'patient_profile': patient_profile,
+                    'today': today,
+                    'max_date': end_date,
+                }
+                return render(request, 'services/book_appointment.html', context)
             
             # Calculate fees
             consultation_fee = provider.consultation_fee or service_type.base_price
@@ -99,11 +116,18 @@ def book_appointment(request, provider_id):
                 additional_fees=additional_fees,
                 patient_phone=patient_phone,
                 patient_email=patient_email,
+                status='pending'  # Set initial status
             )
             
-            # Redirect to payment
-            return redirect('payment_page', appointment_id=appointment.id)
+            messages.success(request, 'Appointment created successfully! Please proceed with payment.')
             
+            # Redirect to payment with correct URL namespace
+            return redirect('services:payment_page', appointment_id=appointment.id)
+            
+        except ServiceType.DoesNotExist:
+            messages.error(request, 'Invalid service type selected.')
+        except ValueError as e:
+            messages.error(request, f'Invalid date or time format: {str(e)}')
         except Exception as e:
             messages.error(request, f'Error creating appointment: {str(e)}')
     
@@ -112,6 +136,8 @@ def book_appointment(request, provider_id):
         'service_types': service_types,
         'available_slots': available_slots,
         'patient_profile': patient_profile,
+        'today': today,
+        'max_date': end_date,
     }
     
     return render(request, 'services/book_appointment.html', context)
