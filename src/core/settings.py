@@ -214,4 +214,9 @@ MESSAGE_TAGS = {
 }
 
 #csrf trusted origins
-CSRF_TRUSTED_ORIGINS = ["*"]
+CSRF_TRUSTED_ORIGINS = [
+    'https://havvenmed.ayubsoft-inc.systems',
+    'https://www.havvenmed.ayubsoft-inc.systems',
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+]
