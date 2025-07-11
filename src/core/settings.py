@@ -29,6 +29,7 @@ EMAIL_USE_TLS = config("EMAIL_USE_TLS", cast=bool, default=True)  # Use EMAIL_PO
 EMAIL_USE_SSL = config("EMAIL_USE_SSL", cast=bool, default=False)  # Use MAIL_PORT 465 for SSL
 ADMIN_USER_NAME=config("ADMIN_USER_NAME", default="Admin user")
 ADMIN_USER_EMAIL=config("ADMIN_USER_EMAIL", default=None)
+DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default=EMAIL_HOST_USER)
 
 MANAGERS=[]
 ADMINS=[]
