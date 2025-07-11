@@ -250,6 +250,10 @@ class HealthcareProfessionalProfile(models.Model):
         ('nursing', 'Nursing'),
         ('pharmacy', 'Pharmacy'),
         ('physiotherapy', 'Physiotherapy'),
+        ('medical Officer', 'Medical Officer'),
+        ('clinical_officer', 'Clinical Officer'),
+        ('nutrition', 'Nutrition'),
+        ('occupational_therapy', 'Occupational Therapy'),
         ('other', 'Other'),
     ]
     
