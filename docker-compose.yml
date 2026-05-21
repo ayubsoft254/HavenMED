@@ -1,0 +1,74 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# HavenMED — docker-compose.yml
+# Services: app (gunicorn) + nginx
+# External access port: 4545
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+
+  # ── Django / Gunicorn ──────────────────────────────────────────────────────
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+    image: havenmed-app:latest
+    container_name: havenmed_app
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - DJANGO_SETTINGS_MODULE=core.settings
+    volumes:
+      # SQLite database — persisted outside the container
+      - havenmed_db:/data
+      # Media uploads — persisted outside the container
+      - havenmed_media:/app/media
+      # Bind-mount the DB path used in settings (BASE_DIR / db.sqlite3)
+      - havenmed_db:/app
+    expose:
+      - "8000"           # Only reachable from within the Docker network
+    networks:
+      - havenmed_net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  # ── Nginx reverse-proxy ────────────────────────────────────────────────────
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: havenmed_nginx
+    restart: unless-stopped
+    ports:
+      - "4545:80"        # <-- External access on port 4545
+    volumes:
+      - ./nginx/havenmed.conf:/etc/nginx/conf.d/default.conf:ro
+      - havenmed_media:/app/media:ro
+      - havenmed_static:/app/staticfiles:ro
+    depends_on:
+      app:
+        condition: service_healthy
+    networks:
+      - havenmed_net
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost/health/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+# ── Volumes ───────────────────────────────────────────────────────────────────
+volumes:
+  havenmed_db:
+    name: havenmed_db
+  havenmed_media:
+    name: havenmed_media
+  havenmed_static:
+    name: havenmed_static
+
+# ── Networks ──────────────────────────────────────────────────────────────────
+networks:
+  havenmed_net:
+    name: havenmed_net
+    driver: bridge
