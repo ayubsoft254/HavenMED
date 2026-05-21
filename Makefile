@@ -1,11 +1,22 @@
 PROJECT_NAME ?= havenmed
 COMPOSE_FILE ?= docker-compose.prod.yml
 COMPOSE = docker compose -p $(PROJECT_NAME) -f $(COMPOSE_FILE)
+APP_UID ?= 1001
+APP_GID ?= 1001
+DATA_DIR ?= /opt/havenmed/shared/data
+MEDIA_DIR ?= /opt/havenmed/shared/media
+STATIC_DIR ?= /opt/havenmed/shared/staticfiles
 
-.PHONY: init build up down restart logs ps pull migrate collectstatic createsuperuser shell status
+.PHONY: init fix-perms build up down restart logs ps pull migrate collectstatic createsuperuser shell status
 
 init:
-	mkdir -p /opt/havenmed/shared/data /opt/havenmed/shared/media /opt/havenmed/shared/staticfiles
+	mkdir -p $(DATA_DIR) $(MEDIA_DIR) $(STATIC_DIR)
+	chown -R $(APP_UID):$(APP_GID) $(DATA_DIR) $(MEDIA_DIR) $(STATIC_DIR)
+	chmod -R u+rwX,g+rwX $(DATA_DIR) $(MEDIA_DIR) $(STATIC_DIR)
+
+fix-perms:
+	chown -R $(APP_UID):$(APP_GID) $(DATA_DIR) $(MEDIA_DIR) $(STATIC_DIR)
+	chmod -R u+rwX,g+rwX $(DATA_DIR) $(MEDIA_DIR) $(STATIC_DIR)
 
 build:
 	$(COMPOSE) build --pull
