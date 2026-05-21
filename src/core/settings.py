@@ -12,6 +12,13 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 from decouple import config
+
+
+def csv_to_list(value):
+    """Parse comma-separated env values into a clean list."""
+    return [item.strip() for item in value.split(',') if item.strip()]
+
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -42,12 +49,12 @@ if all([ADMIN_USER_NAME, ADMIN_USER_EMAIL]):
 
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-cq)^bx1_-0*rjv6-cm1ph&w6)cnt)jgl7tv9i*19pw4ha=ty6&'
+SECRET_KEY = config('SECRET_KEY', default='django-insecure-cq)^bx1_-0*rjv6-cm1ph&w6)cnt)jgl7tv9i*19pw4ha=ty6&')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DEBUG', cast=bool, default=False)
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = csv_to_list(config('ALLOWED_HOSTS', default='localhost,127.0.0.1'))
 
 
 # Application definition
@@ -110,7 +117,7 @@ WSGI_APPLICATION = 'core.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': config('SQLITE_PATH', default=str(BASE_DIR / 'db.sqlite3')),
     }
 }
 
@@ -196,8 +203,8 @@ LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/accounts/dashboard/'
 LOGOUT_REDIRECT_URL = '/accounts/login/'
 
-# Email Configuration (for development)
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# Email backend can be overridden via env in production
+EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
 
 # Custom signup forms
 ACCOUNT_FORMS = {
@@ -215,9 +222,21 @@ MESSAGE_TAGS = {
 }
 
 #csrf trusted origins
-CSRF_TRUSTED_ORIGINS = [
-    'https://havvenmed.ayubsoft-inc.systems',
-    'https://www.havvenmed.ayubsoft-inc.systems',
-    'http://localhost:8000',
-    'http://127.0.0.1:8000',
-]
+CSRF_TRUSTED_ORIGINS = csv_to_list(
+    config(
+        'CSRF_TRUSTED_ORIGINS',
+        default='https://havvenmed.ayubsoft-inc.systems,https://www.havvenmed.ayubsoft-inc.systems,http://localhost:8000,http://127.0.0.1:8000',
+    )
+)
+
+# Honor forwarded headers from external Nginx reverse proxy
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+USE_X_FORWARDED_HOST = True
+
+if not DEBUG:
+    SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', cast=bool, default=False)
+    SESSION_COOKIE_SECURE = config('SESSION_COOKIE_SECURE', cast=bool, default=True)
+    CSRF_COOKIE_SECURE = config('CSRF_COOKIE_SECURE', cast=bool, default=True)
+    SECURE_HSTS_SECONDS = config('SECURE_HSTS_SECONDS', cast=int, default=0)
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = config('SECURE_HSTS_INCLUDE_SUBDOMAINS', cast=bool, default=False)
+    SECURE_HSTS_PRELOAD = config('SECURE_HSTS_PRELOAD', cast=bool, default=False)
