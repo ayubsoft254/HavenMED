@@ -27,13 +27,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # Email config
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
 EMAIL_HOST = config("EMAIL_HOST", cast=str, default="smtp.gmail.com")
-EMAIL_PORT = config("EMAIL_PORT", cast=str, default="587") # Recommended
+EMAIL_PORT = config("EMAIL_PORT", cast=int, default=587) # Recommended
 EMAIL_HOST_USER = config("EMAIL_HOST_USER", cast=str, default=None)
 EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", cast=str, default=None)
 EMAIL_USE_TLS = config("EMAIL_USE_TLS", cast=bool, default=True)  # Use EMAIL_PORT 587 for TLS
 EMAIL_USE_SSL = config("EMAIL_USE_SSL", cast=bool, default=False)  # Use MAIL_PORT 465 for SSL
+EMAIL_TIMEOUT = config("EMAIL_TIMEOUT", cast=int, default=10)
 ADMIN_USER_NAME=config("ADMIN_USER_NAME", default="Admin user")
 ADMIN_USER_EMAIL=config("ADMIN_USER_EMAIL", default=None)
 DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default=EMAIL_HOST_USER)
@@ -187,7 +188,7 @@ AUTHENTICATION_BACKENDS = [
 # Updated Allauth Settings (Latest Version)
 ACCOUNT_LOGIN_METHODS = {'email'}  # Replaces ACCOUNT_AUTHENTICATION_METHOD
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']  # Replaces ACCOUNT_EMAIL_REQUIRED and ACCOUNT_USERNAME_REQUIRED
-ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
+ACCOUNT_EMAIL_VERIFICATION = config('ACCOUNT_EMAIL_VERIFICATION', default='mandatory')
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
 ACCOUNT_CONFIRM_EMAIL_ON_GET = True
 ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 3
@@ -202,9 +203,6 @@ ACCOUNT_RATE_LIMITS = {
 LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/accounts/dashboard/'
 LOGOUT_REDIRECT_URL = '/accounts/login/'
-
-# Email backend can be overridden via env in production
-EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
 
 # Custom signup forms
 ACCOUNT_FORMS = {
