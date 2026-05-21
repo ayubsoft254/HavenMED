@@ -1,389 +1,692 @@
 {% extends "account/base.html" %}
 {% load widget_tweaks %}
 
-{% block title %}Sign Up - HavenMED{% endblock %}
+{% block title %}Create Account — HavenMED{% endblock %}
 
 {% block auth_content %}
-<div class="text-center mb-6">
-    <h2 class="text-2xl font-bold text-white mb-2">Create Your Account</h2>
-    <p class="text-white/80">Join the HavenMED community</p>
+
+<style>
+    /* ── Signup-specific overrides ── */
+    .auth-panel-right {
+        justify-content: flex-start;
+        padding-top: 40px;
+        padding-bottom: 40px;
+    }
+
+    .auth-form-wrap {
+        max-width: 480px;
+    }
+
+    .section-divider {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 28px 0 20px;
+    }
+
+    .section-divider-line {
+        flex: 1;
+        height: 1px;
+        background: var(--border);
+    }
+
+    .section-divider-title {
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        white-space: nowrap;
+    }
+
+    .two-col {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+
+    @media (max-width: 540px) {
+        .two-col { grid-template-columns: 1fr; }
+    }
+
+    /* Select override */
+    select.field-input {
+        padding-left: 46px;
+        cursor: pointer;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238896b0' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 14px center;
+        background-size: 16px;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        padding-right: 42px;
+    }
+
+    /* Textarea */
+    textarea.field-input {
+        padding-top: 12px;
+        padding-bottom: 12px;
+        resize: vertical;
+        min-height: 100px;
+    }
+
+    /* File input */
+    .file-input-wrap {
+        position: relative;
+    }
+
+    .file-input-label {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        width: 100%;
+        padding: 13px 18px;
+        background: var(--surface-2);
+        border: 1.5px dashed var(--border);
+        border-radius: 12px;
+        cursor: pointer;
+        transition: border-color 0.2s ease, background 0.2s ease;
+        font-size: 14px;
+        color: var(--text-muted);
+    }
+
+    .file-input-label:hover {
+        border-color: var(--primary);
+        background: rgba(26, 107, 255, 0.03);
+        color: var(--primary);
+    }
+
+    .file-input-label i {
+        font-size: 16px;
+        color: var(--primary);
+        flex-shrink: 0;
+    }
+
+    input[type="file"] {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        cursor: pointer;
+        width: 100%;
+        height: 100%;
+    }
+
+    /* Notice boxes */
+    .notice-box {
+        display: none;
+        align-items: flex-start;
+        gap: 12px;
+        border-radius: 10px;
+        padding: 14px 16px;
+        font-size: 13px;
+        font-weight: 500;
+        line-height: 1.5;
+        margin-top: 4px;
+        animation: fadeSlideIn 0.25s ease;
+    }
+
+    .notice-box.visible { display: flex; }
+
+    .notice-box.success {
+        background: rgba(16, 185, 129, 0.08);
+        border: 1px solid rgba(16, 185, 129, 0.25);
+        border-left: 3px solid var(--success);
+        color: #065f46;
+    }
+
+    .notice-box.warning {
+        background: rgba(245, 158, 11, 0.08);
+        border: 1px solid rgba(245, 158, 11, 0.25);
+        border-left: 3px solid #f59e0b;
+        color: #78350f;
+    }
+
+    .notice-box i { margin-top: 1px; flex-shrink: 0; }
+
+    /* User type pill selector */
+    .type-selector {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-bottom: 4px;
+    }
+
+    .type-pill {
+        display: none;
+    }
+
+    .type-pill-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 9px 16px;
+        border: 1.5px solid var(--border);
+        border-radius: 100px;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        user-select: none;
+        white-space: nowrap;
+    }
+
+    .type-pill-label i { font-size: 12px; }
+
+    .type-pill-label:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+        background: rgba(26,107,255,0.04);
+    }
+
+    .type-pill:checked + .type-pill-label {
+        border-color: var(--primary);
+        background: rgba(26,107,255,0.08);
+        color: var(--primary);
+    }
+
+    .hidden-section { display: none; }
+    .visible-section { display: block; animation: fadeSlideIn 0.25s ease; }
+
+    /* Submit button variant for signup */
+    .btn-signup {
+        background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        box-shadow: 0 4px 15px rgba(5, 150, 105, 0.35);
+    }
+
+    .btn-signup:hover {
+        box-shadow: 0 8px 25px rgba(5, 150, 105, 0.45);
+    }
+</style>
+
+<!-- Form Header -->
+<div class="form-header">
+    <p class="form-eyebrow">Join HavenMED</p>
+    <h2 class="form-title">Create your account</h2>
+    <p class="form-subtitle">Get connected to Kenya's premier healthcare network.</p>
 </div>
 
-<form method="post" enctype="multipart/form-data" class="space-y-4" id="signup-form">
+<!-- Non-field errors -->
+{% if form.non_field_errors %}
+<div class="form-alert" role="alert">
+    <i class="fas fa-circle-exclamation"></i>
+    <div>{{ form.non_field_errors.0 }}</div>
+</div>
+{% endif %}
+
+<form method="post" enctype="multipart/form-data" id="signup-form" novalidate>
     {% csrf_token %}
-    
-    <!-- User Type Selection -->
-    <div>
-        <label for="{{ form.user_type.id_for_label }}" class="block text-sm font-medium text-white mb-2">
-            Account Type <span class="text-red-300">*</span>
+
+    <!-- Account Type -->
+    <div class="field-group">
+        <label class="field-label">
+            <i class="fas fa-users"></i>
+            I am a…
         </label>
-        {{ form.user_type }}
+        <div class="type-selector" id="type-selector">
+            <input type="radio" name="{{ form.user_type.name }}" id="type-patient"
+                   value="patient" class="type-pill" {% if form.user_type.value == 'patient' %}checked{% endif %}>
+            <label for="type-patient" class="type-pill-label">
+                <i class="fas fa-user-injured"></i> Patient
+            </label>
+
+            <input type="radio" name="{{ form.user_type.name }}" id="type-pro"
+                   value="healthcare_professional" class="type-pill"
+                   {% if form.user_type.value == 'healthcare_professional' %}checked{% endif %}>
+            <label for="type-pro" class="type-pill-label">
+                <i class="fas fa-user-doctor"></i> Healthcare Professional
+            </label>
+
+            <input type="radio" name="{{ form.user_type.name }}" id="type-clinic"
+                   value="clinic" class="type-pill" {% if form.user_type.value == 'clinic' %}checked{% endif %}>
+            <label for="type-clinic" class="type-pill-label">
+                <i class="fas fa-clinic-medical"></i> Clinic
+            </label>
+
+            <input type="radio" name="{{ form.user_type.name }}" id="type-hospital"
+                   value="hospital" class="type-pill" {% if form.user_type.value == 'hospital' %}checked{% endif %}>
+            <label for="type-hospital" class="type-pill-label">
+                <i class="fas fa-hospital"></i> Hospital
+            </label>
+        </div>
         {% if form.user_type.errors %}
-            <div class="text-red-300 text-sm mt-1">{{ form.user_type.errors.0 }}</div>
+        <div class="field-error"><i class="fas fa-triangle-exclamation"></i>{{ form.user_type.errors.0 }}</div>
         {% endif %}
+
+        <!-- Notices -->
+        <div class="notice-box success" id="patient-notice">
+            <i class="fas fa-circle-check"></i>
+            Patient accounts get instant access to all features — no approval needed.
+        </div>
+        <div class="notice-box warning" id="approval-notice">
+            <i class="fas fa-clock"></i>
+            Your account will be reviewed by our team. You'll receive an email once approved.
+        </div>
     </div>
 
     <!-- Basic Information -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-            <label for="{{ form.first_name.id_for_label }}" class="block text-sm font-medium text-white mb-2">
-                First Name <span class="text-red-300">*</span>
+    <div class="section-divider">
+        <div class="section-divider-line"></div>
+        <span class="section-divider-title">Personal Information</span>
+        <div class="section-divider-line"></div>
+    </div>
+
+    <div class="two-col">
+        <div class="field-group">
+            <label for="{{ form.first_name.id_for_label }}" class="field-label">
+                <i class="fas fa-user"></i> First Name
             </label>
-            {{ form.first_name }}
+            <div class="field-wrapper">
+                {{ form.first_name|add_class:"field-input"|attr:"placeholder:First name"|attr:"autocomplete:given-name" }}
+                <i class="fas fa-user field-icon"></i>
+            </div>
             {% if form.first_name.errors %}
-                <div class="text-red-300 text-sm mt-1">{{ form.first_name.errors.0 }}</div>
+            <div class="field-error"><i class="fas fa-triangle-exclamation"></i>{{ form.first_name.errors.0 }}</div>
             {% endif %}
         </div>
-        <div>
-            <label for="{{ form.last_name.id_for_label }}" class="block text-sm font-medium text-white mb-2">
-                Last Name <span class="text-red-300">*</span>
+        <div class="field-group">
+            <label for="{{ form.last_name.id_for_label }}" class="field-label">
+                <i class="fas fa-user"></i> Last Name
             </label>
-            {{ form.last_name }}
+            <div class="field-wrapper">
+                {{ form.last_name|add_class:"field-input"|attr:"placeholder:Last name"|attr:"autocomplete:family-name" }}
+                <i class="fas fa-user field-icon"></i>
+            </div>
             {% if form.last_name.errors %}
-                <div class="text-red-300 text-sm mt-1">{{ form.last_name.errors.0 }}</div>
+            <div class="field-error"><i class="fas fa-triangle-exclamation"></i>{{ form.last_name.errors.0 }}</div>
             {% endif %}
         </div>
     </div>
 
-    <div>
-        <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-white mb-2">
-            Email Address <span class="text-red-300">*</span>
+    <div class="field-group">
+        <label for="{{ form.email.id_for_label }}" class="field-label">
+            <i class="fas fa-envelope"></i> Email Address
         </label>
-        {{ form.email }}
+        <div class="field-wrapper">
+            {{ form.email|add_class:"field-input"|attr:"placeholder:you@example.com"|attr:"autocomplete:email"|attr:"type:email" }}
+            <i class="fas fa-at field-icon"></i>
+        </div>
         {% if form.email.errors %}
-            <div class="text-red-300 text-sm mt-1">{{ form.email.errors.0 }}</div>
+        <div class="field-error"><i class="fas fa-triangle-exclamation"></i>{{ form.email.errors.0 }}</div>
         {% endif %}
     </div>
 
-    <div>
-        <label for="{{ form.phone_number.id_for_label }}" class="block text-sm font-medium text-white mb-2">
-            Phone Number <span class="text-red-300">*</span>
+    <div class="field-group">
+        <label for="{{ form.phone_number.id_for_label }}" class="field-label">
+            <i class="fas fa-phone"></i> Phone Number
         </label>
-        {{ form.phone_number }}
+        <div class="field-wrapper">
+            {{ form.phone_number|add_class:"field-input"|attr:"placeholder:+254 7XX XXX XXX"|attr:"autocomplete:tel" }}
+            <i class="fas fa-phone field-icon"></i>
+        </div>
         {% if form.phone_number.errors %}
-            <div class="text-red-300 text-sm mt-1">{{ form.phone_number.errors.0 }}</div>
+        <div class="field-error"><i class="fas fa-triangle-exclamation"></i>{{ form.phone_number.errors.0 }}</div>
         {% endif %}
     </div>
 
-    <!-- Location Fields -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-            <label for="{{ form.county.id_for_label }}" class="block text-sm font-medium text-white mb-2">
-                County <span class="text-red-300">*</span>
+    <!-- Location -->
+    <div class="two-col">
+        <div class="field-group">
+            <label for="{{ form.county.id_for_label }}" class="field-label">
+                <i class="fas fa-map-marker-alt"></i> County
             </label>
-            {{ form.county }}
+            <div class="field-wrapper">
+                {{ form.county|add_class:"field-input" }}
+                <i class="fas fa-map-marker-alt field-icon"></i>
+            </div>
             {% if form.county.errors %}
-                <div class="text-red-300 text-sm mt-1">{{ form.county.errors.0 }}</div>
+            <div class="field-error"><i class="fas fa-triangle-exclamation"></i>{{ form.county.errors.0 }}</div>
             {% endif %}
         </div>
-        <div>
-            <label for="{{ form.subcounty.id_for_label }}" class="block text-sm font-medium text-white mb-2">
-                Subcounty <span class="text-red-300">*</span>
+        <div class="field-group">
+            <label for="{{ form.subcounty.id_for_label }}" class="field-label">
+                <i class="fas fa-map-pin"></i> Subcounty
             </label>
-            <select name="{{ form.subcounty.name }}" id="{{ form.subcounty.id_for_label }}" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 bg-white">
-                <option value="">Select Subcounty</option>
-            </select>
+            <div class="field-wrapper">
+                <select name="{{ form.subcounty.name }}" id="{{ form.subcounty.id_for_label }}" class="field-input">
+                    <option value="">Select Subcounty</option>
+                </select>
+                <i class="fas fa-map-pin field-icon"></i>
+            </div>
             {% if form.subcounty.errors %}
-                <div class="text-red-300 text-sm mt-1">{{ form.subcounty.errors.0 }}</div>
+            <div class="field-error"><i class="fas fa-triangle-exclamation"></i>{{ form.subcounty.errors.0 }}</div>
             {% endif %}
         </div>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-            <label for="{{ form.password1.id_for_label }}" class="block text-sm font-medium text-white mb-2">
-                Password <span class="text-red-300">*</span>
+    <!-- Password -->
+    <div class="two-col">
+        <div class="field-group">
+            <label for="{{ form.password1.id_for_label }}" class="field-label">
+                <i class="fas fa-lock"></i> Password
             </label>
-            {{ form.password1 }}
+            <div class="field-wrapper">
+                {{ form.password1|add_class:"field-input"|attr:"placeholder:Min. 8 characters"|attr:"autocomplete:new-password" }}
+                <i class="fas fa-lock field-icon"></i>
+            </div>
             {% if form.password1.errors %}
-                <div class="text-red-300 text-sm mt-1">{{ form.password1.errors.0 }}</div>
+            <div class="field-error"><i class="fas fa-triangle-exclamation"></i>{{ form.password1.errors.0 }}</div>
             {% endif %}
         </div>
-        <div>
-            <label for="{{ form.password2.id_for_label }}" class="block text-sm font-medium text-white mb-2">
-                Confirm Password <span class="text-red-300">*</span>
+        <div class="field-group">
+            <label for="{{ form.password2.id_for_label }}" class="field-label">
+                <i class="fas fa-lock"></i> Confirm Password
             </label>
-            {{ form.password2 }}
+            <div class="field-wrapper">
+                {{ form.password2|add_class:"field-input"|attr:"placeholder:Re-enter password"|attr:"autocomplete:new-password" }}
+                <i class="fas fa-lock field-icon"></i>
+            </div>
             {% if form.password2.errors %}
-                <div class="text-red-300 text-sm mt-1">{{ form.password2.errors.0 }}</div>
+            <div class="field-error"><i class="fas fa-triangle-exclamation"></i>{{ form.password2.errors.0 }}</div>
             {% endif %}
         </div>
     </div>
 
-    <!-- Healthcare Professional Fields -->
-    <div id="healthcare-fields" class="space-y-4 hidden">
-        <h3 class="text-lg font-semibold text-white border-b border-white/20 pb-2">Professional Information</h3>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-                <label for="{{ form.specialization.id_for_label }}" class="block text-sm font-medium text-white mb-2">
-                    Specialization <span class="text-red-300">*</span>
+    <!-- ── Healthcare Professional Fields ── -->
+    <div id="healthcare-fields" class="hidden-section">
+        <div class="section-divider">
+            <div class="section-divider-line"></div>
+            <span class="section-divider-title">Professional Details</span>
+            <div class="section-divider-line"></div>
+        </div>
+
+        <div class="two-col">
+            <div class="field-group">
+                <label for="{{ form.specialization.id_for_label }}" class="field-label">
+                    <i class="fas fa-stethoscope"></i> Specialization
                 </label>
-                {{ form.specialization }}
+                <div class="field-wrapper">
+                    {{ form.specialization|add_class:"field-input"|attr:"placeholder:e.g. Cardiology" }}
+                    <i class="fas fa-stethoscope field-icon"></i>
+                </div>
                 {% if form.specialization.errors %}
-                    <div class="text-red-300 text-sm mt-1">{{ form.specialization.errors.0 }}</div>
+                <div class="field-error"><i class="fas fa-triangle-exclamation"></i>{{ form.specialization.errors.0 }}</div>
                 {% endif %}
             </div>
-            <div>
-                <label for="{{ form.years_of_experience.id_for_label }}" class="block text-sm font-medium text-white mb-2">
-                    Years of Experience <span class="text-red-300">*</span>
+            <div class="field-group">
+                <label for="{{ form.years_of_experience.id_for_label }}" class="field-label">
+                    <i class="fas fa-calendar"></i> Years of Experience
                 </label>
-                {{ form.years_of_experience }}
+                <div class="field-wrapper">
+                    {{ form.years_of_experience|add_class:"field-input"|attr:"placeholder:e.g. 5"|attr:"type:number"|attr:"min:0" }}
+                    <i class="fas fa-calendar field-icon"></i>
+                </div>
                 {% if form.years_of_experience.errors %}
-                    <div class="text-red-300 text-sm mt-1">{{ form.years_of_experience.errors.0 }}</div>
+                <div class="field-error"><i class="fas fa-triangle-exclamation"></i>{{ form.years_of_experience.errors.0 }}</div>
                 {% endif %}
             </div>
         </div>
 
-        <div>
-            <label for="{{ form.kmpdu_license_number.id_for_label }}" class="block text-sm font-medium text-white mb-2">
-                KMPDU License Number <span class="text-red-300">*</span>
+        <div class="field-group">
+            <label for="{{ form.kmpdu_license_number.id_for_label }}" class="field-label">
+                <i class="fas fa-id-card"></i> KMPDU License Number
             </label>
-            {{ form.kmpdu_license_number }}
+            <div class="field-wrapper">
+                {{ form.kmpdu_license_number|add_class:"field-input"|attr:"placeholder:License number" }}
+                <i class="fas fa-id-card field-icon"></i>
+            </div>
             {% if form.kmpdu_license_number.errors %}
-                <div class="text-red-300 text-sm mt-1">{{ form.kmpdu_license_number.errors.0 }}</div>
+            <div class="field-error"><i class="fas fa-triangle-exclamation"></i>{{ form.kmpdu_license_number.errors.0 }}</div>
             {% endif %}
         </div>
 
-        <div>
-            <label for="{{ form.bio.id_for_label }}" class="block text-sm font-medium text-white mb-2">
-                Professional Bio
+        <div class="field-group">
+            <label for="{{ form.bio.id_for_label }}" class="field-label">
+                <i class="fas fa-align-left"></i> Professional Bio
             </label>
-            {{ form.bio }}
+            <div class="field-wrapper">
+                {{ form.bio|add_class:"field-input"|attr:"placeholder:Brief professional background and expertise..." }}
+            </div>
             {% if form.bio.errors %}
-                <div class="text-red-300 text-sm mt-1">{{ form.bio.errors.0 }}</div>
+            <div class="field-error"><i class="fas fa-triangle-exclamation"></i>{{ form.bio.errors.0 }}</div>
             {% endif %}
         </div>
 
-        <div>
-            <label for="{{ form.national_id.id_for_label }}" class="block text-sm font-medium text-white mb-2">
-                National ID/Passport <span class="text-red-300">*</span>
-            </label>
-            {{ form.national_id }}
+        <div class="field-group">
+            <label class="field-label"><i class="fas fa-file-id-card"></i> National ID / Passport</label>
+            <div class="file-input-wrap">
+                <label class="file-input-label" id="national-id-label">
+                    <i class="fas fa-cloud-arrow-up"></i>
+                    <span id="national-id-text">Upload National ID or Passport</span>
+                </label>
+                {{ form.national_id }}
+            </div>
             {% if form.national_id.errors %}
-                <div class="text-red-300 text-sm mt-1">{{ form.national_id.errors.0 }}</div>
+            <div class="field-error"><i class="fas fa-triangle-exclamation"></i>{{ form.national_id.errors.0 }}</div>
             {% endif %}
         </div>
 
-        <div>
-            <label for="{{ form.kmpdu_license.id_for_label }}" class="block text-sm font-medium text-white mb-2">
-                KMPDU License Document <span class="text-red-300">*</span>
-            </label>
-            {{ form.kmpdu_license }}
+        <div class="field-group">
+            <label class="field-label"><i class="fas fa-file-medical"></i> KMPDU License Document</label>
+            <div class="file-input-wrap">
+                <label class="file-input-label" id="kmpdu-license-label">
+                    <i class="fas fa-cloud-arrow-up"></i>
+                    <span id="kmpdu-license-text">Upload KMPDU License Document</span>
+                </label>
+                {{ form.kmpdu_license }}
+            </div>
             {% if form.kmpdu_license.errors %}
-                <div class="text-red-300 text-sm mt-1">{{ form.kmpdu_license.errors.0 }}</div>
+            <div class="field-error"><i class="fas fa-triangle-exclamation"></i>{{ form.kmpdu_license.errors.0 }}</div>
             {% endif %}
         </div>
     </div>
 
-    <!-- Institution Fields -->
-    <div id="institution-fields" class="space-y-4 hidden">
-        <h3 class="text-lg font-semibold text-white border-b border-white/20 pb-2">Institution Information</h3>
-        
-        <div>
-            <label for="{{ form.institution_name.id_for_label }}" class="block text-sm font-medium text-white mb-2">
-                Institution Name <span class="text-red-300">*</span>
+    <!-- ── Institution Fields ── -->
+    <div id="institution-fields" class="hidden-section">
+        <div class="section-divider">
+            <div class="section-divider-line"></div>
+            <span class="section-divider-title">Institution Details</span>
+            <div class="section-divider-line"></div>
+        </div>
+
+        <div class="field-group">
+            <label for="{{ form.institution_name.id_for_label }}" class="field-label">
+                <i class="fas fa-hospital"></i> Institution Name
             </label>
-            {{ form.institution_name }}
+            <div class="field-wrapper">
+                {{ form.institution_name|add_class:"field-input"|attr:"placeholder:Full institution name" }}
+                <i class="fas fa-hospital field-icon"></i>
+            </div>
             {% if form.institution_name.errors %}
-                <div class="text-red-300 text-sm mt-1">{{ form.institution_name.errors.0 }}</div>
+            <div class="field-error"><i class="fas fa-triangle-exclamation"></i>{{ form.institution_name.errors.0 }}</div>
             {% endif %}
         </div>
 
-        <div>
-            <label for="{{ form.registration_number.id_for_label }}" class="block text-sm font-medium text-white mb-2">
-                Registration Number <span class="text-red-300">*</span>
+        <div class="field-group">
+            <label for="{{ form.registration_number.id_for_label }}" class="field-label">
+                <i class="fas fa-hashtag"></i> Registration Number
             </label>
-            {{ form.registration_number }}
+            <div class="field-wrapper">
+                {{ form.registration_number|add_class:"field-input"|attr:"placeholder:Official registration number" }}
+                <i class="fas fa-hashtag field-icon"></i>
+            </div>
             {% if form.registration_number.errors %}
-                <div class="text-red-300 text-sm mt-1">{{ form.registration_number.errors.0 }}</div>
+            <div class="field-error"><i class="fas fa-triangle-exclamation"></i>{{ form.registration_number.errors.0 }}</div>
             {% endif %}
         </div>
 
-        <div>
-            <label for="{{ form.physical_address.id_for_label }}" class="block text-sm font-medium text-white mb-2">
-                Physical Address <span class="text-red-300">*</span>
+        <div class="field-group">
+            <label for="{{ form.physical_address.id_for_label }}" class="field-label">
+                <i class="fas fa-location-dot"></i> Physical Address
             </label>
-            {{ form.physical_address }}
+            <div class="field-wrapper">
+                {{ form.physical_address|add_class:"field-input"|attr:"placeholder:Street address, building, etc." }}
+                <i class="fas fa-location-dot field-icon"></i>
+            </div>
             {% if form.physical_address.errors %}
-                <div class="text-red-300 text-sm mt-1">{{ form.physical_address.errors.0 }}</div>
+            <div class="field-error"><i class="fas fa-triangle-exclamation"></i>{{ form.physical_address.errors.0 }}</div>
             {% endif %}
         </div>
 
-        <div>
-            <label for="{{ form.services_offered.id_for_label }}" class="block text-sm font-medium text-white mb-2">
-                Services Offered
+        <div class="field-group">
+            <label for="{{ form.services_offered.id_for_label }}" class="field-label">
+                <i class="fas fa-list-check"></i> Services Offered
             </label>
-            {{ form.services_offered }}
+            <div class="field-wrapper">
+                {{ form.services_offered|add_class:"field-input"|attr:"placeholder:Describe the services your institution provides..." }}
+            </div>
             {% if form.services_offered.errors %}
-                <div class="text-red-300 text-sm mt-1">{{ form.services_offered.errors.0 }}</div>
+            <div class="field-error"><i class="fas fa-triangle-exclamation"></i>{{ form.services_offered.errors.0 }}</div>
             {% endif %}
         </div>
 
-        <div>
-            <label for="{{ form.medical_license.id_for_label }}" class="block text-sm font-medium text-white mb-2">
-                Medical Institution License <span class="text-red-300">*</span>
-            </label>
-            {{ form.medical_license }}
+        <div class="field-group">
+            <label class="field-label"><i class="fas fa-file-medical-alt"></i> Medical Institution License</label>
+            <div class="file-input-wrap">
+                <label class="file-input-label" id="med-license-label">
+                    <i class="fas fa-cloud-arrow-up"></i>
+                    <span id="med-license-text">Upload License Document</span>
+                </label>
+                {{ form.medical_license }}
+            </div>
             {% if form.medical_license.errors %}
-                <div class="text-red-300 text-sm mt-1">{{ form.medical_license.errors.0 }}</div>
+            <div class="field-error"><i class="fas fa-triangle-exclamation"></i>{{ form.medical_license.errors.0 }}</div>
             {% endif %}
         </div>
     </div>
 
-    <!-- Patient Notice -->
-    <div id="patient-notice" class="hidden bg-green-500/20 border border-green-300/30 rounded-lg p-4">
-        <div class="flex items-center">
-            <i class="fas fa-check-circle text-green-300 mr-2"></i>
-            <span class="text-green-100 text-sm">
-                Patient accounts are automatically approved and you'll have immediate access to all features.
-            </span>
-        </div>
-    </div>
-
-    <!-- Approval Notice -->
-    <div id="approval-notice" class="hidden bg-yellow-500/20 border border-yellow-300/30 rounded-lg p-4">
-        <div class="flex items-center">
-            <i class="fas fa-clock text-yellow-300 mr-2"></i>
-            <span class="text-yellow-100 text-sm">
-                Your account will require admin approval before you can access all features. You'll receive an email notification once approved.
-            </span>
-        </div>
-    </div>
-
-    <button type="submit" class="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-3 px-4 rounded-lg hover:from-green-600 hover:to-emerald-700 transition duration-300 transform hover:scale-105 font-semibold shadow-lg">
-        Create Account
+    <!-- Submit -->
+    <button type="submit" class="btn-primary btn-signup" id="signup-btn" style="margin-top: 28px;">
+        <div class="shimmer"></div>
+        <i class="fas fa-user-plus"></i>
+        Create My Account
     </button>
 </form>
 
-<div class="text-center mt-6">
-    <p class="text-white/80 text-sm">
-        Already have an account? 
-        <a href="{% url 'account_login' %}" class="text-white hover:text-blue-200 transition duration-300 font-medium">
-            Sign In
-        </a>
-    </p>
+<!-- Sign In Link -->
+<div class="divider">
+    <div class="divider-line"></div>
+    <span class="divider-text">Already have an account?</span>
+    <div class="divider-line"></div>
 </div>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const userTypeSelect = document.getElementById('{{ form.user_type.id_for_label }}');
-        const healthcareFields = document.getElementById('healthcare-fields');
-        const institutionFields = document.getElementById('institution-fields');
-        const patientNotice = document.getElementById('patient-notice');
-        const approvalNotice = document.getElementById('approval-notice');
-        
-        // County and subcounty handling
-        const countySelect = document.getElementById('{{ form.county.id_for_label }}');
-        const subcountySelect = document.getElementById('{{ form.subcounty.id_for_label }}');
-        
-        const subcounties = {
-            'nairobi': [
-                ['westlands', 'Westlands'],
-                ['dagoretti_north', 'Dagoretti North'],
-                ['dagoretti_south', 'Dagoretti South'],
-                ['langata', 'Lang\'ata'],
-                ['kibra', 'Kibra'],
-                ['roysambu', 'Roysambu'],
-                ['kasarani', 'Kasarani'],
-                ['ruaraka', 'Ruaraka'],
-                ['embakasi_south', 'Embakasi South'],
-                ['embakasi_north', 'Embakasi North'],
-                ['embakasi_central', 'Embakasi Central'],
-                ['embakasi_east', 'Embakasi East'],
-                ['embakasi_west', 'Embakasi West'],
-                ['makadara', 'Makadara'],
-                ['kamukunji', 'Kamukunji'],
-                ['starehe', 'Starehe'],
-                ['mathare', 'Mathare'],
-            ],
-            'kiambu': [
-                ['gatundu_south', 'Gatundu South'],
-                ['gatundu_north', 'Gatundu North'],
-                ['juja', 'Juja'],
-                ['thika_town', 'Thika Town'],
-                ['ruiru', 'Ruiru'],
-                ['githunguri', 'Githunguri'],
-                ['kiambu_town', 'Kiambu Town'],
-                ['kiambaa', 'Kiambaa'],
-                ['kabete', 'Kabete'],
-                ['kikuyu', 'Kikuyu'],
-                ['limuru', 'Limuru'],
-                ['lari', 'Lari'],
-            ],
-            'nakuru': [
-                ['nakuru_town_east', 'Nakuru Town East'],
-                ['nakuru_town_west', 'Nakuru Town West'],
-                ['bahati', 'Bahati'],
-                ['subukia', 'Subukia'],
-                ['rongai', 'Rongai'],
-                ['molo', 'Molo'],
-                ['njoro', 'Njoro'],
-                ['naivasha', 'Naivasha'],
-                ['gilgil', 'Gilgil'],
-                ['kuresoi_south', 'Kuresoi South'],
-                ['kuresoi_north', 'Kuresoi North'],
-            ],
-            'mombasa': [
-                ['changamwe', 'Changamwe'],
-                ['jomba', 'Jomba'],
-                ['kisauni', 'Kisauni'],
-                ['nyali', 'Nyali'],
-                ['likoni', 'Likoni'],
-                ['mvita', 'Mvita'],
-            ],
-            // Add default subcounties for other counties
-            'default': [
-                ['central', 'Central'],
-                ['north', 'North'],
-                ['south', 'South'],
-                ['east', 'East'],
-                ['west', 'West'],
-            ]
-        };
+<p class="signup-prompt">
+    <a href="{% url 'account_login' %}">Sign in instead &rarr;</a>
+</p>
 
-        function updateSubcounties() {
-            const selectedCounty = countySelect.value;
-            const subcountyOptions = subcounties[selectedCounty] || subcounties['default'];
-            
-            // Clear existing options
-            subcountySelect.innerHTML = '<option value="">Select Subcounty</option>';
-            
-            // Add new options
-            subcountyOptions.forEach(function(subcounty) {
-                const option = document.createElement('option');
-                option.value = subcounty[0];
-                option.textContent = subcounty[1];
-                subcountySelect.appendChild(option);
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    /* ── User type toggling ── */
+    const typePills     = document.querySelectorAll('.type-pill');
+    const hcFields      = document.getElementById('healthcare-fields');
+    const instFields    = document.getElementById('institution-fields');
+    const patientNotice = document.getElementById('patient-notice');
+    const approvalNotice= document.getElementById('approval-notice');
+
+    function showSection(el) {
+        el.classList.remove('hidden-section');
+        el.classList.add('visible-section');
+    }
+    function hideSection(el) {
+        el.classList.remove('visible-section');
+        el.classList.add('hidden-section');
+    }
+
+    function toggleFields() {
+        const selected = document.querySelector('.type-pill:checked');
+        const type = selected ? selected.value : '';
+
+        hideSection(hcFields);
+        hideSection(instFields);
+        patientNotice.classList.remove('visible');
+        approvalNotice.classList.remove('visible');
+
+        if (type === 'healthcare_professional') {
+            showSection(hcFields);
+            approvalNotice.classList.add('visible');
+        } else if (type === 'clinic' || type === 'hospital') {
+            showSection(instFields);
+            approvalNotice.classList.add('visible');
+        } else if (type === 'patient') {
+            patientNotice.classList.add('visible');
+        }
+    }
+
+    typePills.forEach(p => p.addEventListener('change', toggleFields));
+    toggleFields();
+
+    /* ── County → Subcounty ── */
+    const countySelect    = document.getElementById('{{ form.county.id_for_label }}');
+    const subcountySelect = document.getElementById('{{ form.subcounty.id_for_label }}');
+
+    const subcounties = {
+        'nairobi': [
+            ['westlands','Westlands'],['dagoretti_north','Dagoretti North'],
+            ['dagoretti_south','Dagoretti South'],['langata',"Lang'ata"],
+            ['kibra','Kibra'],['roysambu','Roysambu'],['kasarani','Kasarani'],
+            ['ruaraka','Ruaraka'],['embakasi_south','Embakasi South'],
+            ['embakasi_north','Embakasi North'],['embakasi_central','Embakasi Central'],
+            ['embakasi_east','Embakasi East'],['embakasi_west','Embakasi West'],
+            ['makadara','Makadara'],['kamukunji','Kamukunji'],
+            ['starehe','Starehe'],['mathare','Mathare'],
+        ],
+        'kiambu': [
+            ['gatundu_south','Gatundu South'],['gatundu_north','Gatundu North'],
+            ['juja','Juja'],['thika_town','Thika Town'],['ruiru','Ruiru'],
+            ['githunguri','Githunguri'],['kiambu_town','Kiambu Town'],
+            ['kiambaa','Kiambaa'],['kabete','Kabete'],['kikuyu','Kikuyu'],
+            ['limuru','Limuru'],['lari','Lari'],
+        ],
+        'nakuru': [
+            ['nakuru_town_east','Nakuru Town East'],['nakuru_town_west','Nakuru Town West'],
+            ['bahati','Bahati'],['subukia','Subukia'],['rongai','Rongai'],
+            ['molo','Molo'],['njoro','Njoro'],['naivasha','Naivasha'],
+            ['gilgil','Gilgil'],['kuresoi_south','Kuresoi South'],
+            ['kuresoi_north','Kuresoi North'],
+        ],
+        'mombasa': [
+            ['changamwe','Changamwe'],['jomba','Jomba'],['kisauni','Kisauni'],
+            ['nyali','Nyali'],['likoni','Likoni'],['mvita','Mvita'],
+        ],
+        'default': [
+            ['central','Central'],['north','North'],['south','South'],
+            ['east','East'],['west','West'],
+        ],
+    };
+
+    function updateSubcounties() {
+        const county = countySelect ? countySelect.value : '';
+        const opts   = subcounties[county] || subcounties['default'];
+        subcountySelect.innerHTML = '<option value="">Select Subcounty</option>';
+        opts.forEach(([val, label]) => {
+            const o = document.createElement('option');
+            o.value = val; o.textContent = label;
+            subcountySelect.appendChild(o);
+        });
+    }
+
+    if (countySelect) {
+        countySelect.addEventListener('change', updateSubcounties);
+        updateSubcounties();
+    }
+
+    /* ── File input labels ── */
+    function wireFileInput(inputId, textId) {
+        const input = document.getElementById(inputId);
+        const text  = document.getElementById(textId);
+        if (input && text) {
+            input.addEventListener('change', function () {
+                text.textContent = this.files[0]
+                    ? this.files[0].name
+                    : text.dataset.default || 'Choose file…';
             });
         }
+    }
 
-        function toggleFields() {
-            const userType = userTypeSelect.value;
-            
-            // Hide all sections first
-            healthcareFields.classList.add('hidden');
-            institutionFields.classList.add('hidden');
-            patientNotice.classList.add('hidden');
-            approvalNotice.classList.add('hidden');
+    wireFileInput('{{ form.national_id.auto_id }}',   'national-id-text');
+    wireFileInput('{{ form.kmpdu_license.auto_id }}', 'kmpdu-license-text');
+    wireFileInput('{{ form.medical_license.auto_id }}','med-license-text');
 
-            if (userType === 'healthcare_professional') {
-                healthcareFields.classList.remove('hidden');
-                approvalNotice.classList.remove('hidden');
-            } else if (userType === 'clinic' || userType === 'hospital') {
-                institutionFields.classList.remove('hidden');
-                approvalNotice.classList.remove('hidden');
-            } else if (userType === 'patient') {
-                patientNotice.classList.remove('hidden');
-            }
-        }
-
-        countySelect.addEventListener('change', updateSubcounties);
-        userTypeSelect.addEventListener('change', toggleFields);
-        
-        // Initial calls
-        updateSubcounties();
-        toggleFields();
-    });
+    /* ── Loading state on submit ── */
+    const form = document.getElementById('signup-form');
+    const btn  = document.getElementById('signup-btn');
+    if (form && btn) {
+        form.addEventListener('submit', function () {
+            btn.disabled = true;
+            btn.innerHTML = '<div class="shimmer"></div><i class="fas fa-circle-notch fa-spin"></i> Creating account…';
+        });
+    }
+});
 </script>
 {% endblock %}

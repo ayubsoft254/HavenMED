@@ -1,317 +1,163 @@
 {% extends "account/base.html" %}
 
-{% block title %}Sign In - HavenMED{% endblock %}
+{% block title %}Sign In — HavenMED{% endblock %}
 
 {% block auth_content %}
-<!-- Header Section with animated background -->
-<div class="text-center mb-8 relative">
-    <!-- Animated background elements -->
-    <div class="absolute inset-0 overflow-hidden pointer-events-none">
-        <div class="absolute top-0 left-1/4 w-32 h-32 bg-blue-500/10 rounded-full blur-xl animate-pulse"></div>
-        <div class="absolute bottom-0 right-1/4 w-24 h-24 bg-cyan-500/10 rounded-full blur-xl animate-pulse animation-delay-1000"></div>
-    </div>
-    
-    <!-- Icon with glow effect -->
-    <div class="relative mb-4">
-        <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl shadow-lg">
-            <i class="fas fa-shield-heart text-white text-2xl"></i>
-        </div>
-    </div>
-    
-    <h2 class="text-3xl font-bold bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent mb-2">
-        Welcome Back
-    </h2>
-    <p class="text-white/70 text-lg">Secure access to your healthcare platform</p>
+
+<!-- Form Header -->
+<div class="form-header">
+    <p class="form-eyebrow">Secure Access</p>
+    <h2 class="form-title">Welcome back</h2>
+    <p class="form-subtitle">Sign in to your HavenMED account to continue.</p>
 </div>
 
-<!-- Form Container with glass morphism -->
-<div class="relative bg-white/5 backdrop-blur-md border border-white/20 rounded-2xl p-8 shadow-2xl">
-    <!-- Decorative elements -->
-    <div class="absolute -top-4 -left-4 w-8 h-8 border-l-2 border-t-2 border-blue-400/50 rounded-tl-lg"></div>
-    <div class="absolute -top-4 -right-4 w-8 h-8 border-r-2 border-t-2 border-blue-400/50 rounded-tr-lg"></div>
-    <div class="absolute -bottom-4 -left-4 w-8 h-8 border-l-2 border-b-2 border-blue-400/50 rounded-bl-lg"></div>
-    <div class="absolute -bottom-4 -right-4 w-8 h-8 border-r-2 border-b-2 border-blue-400/50 rounded-br-lg"></div>
-    
-    <form method="post" class="space-y-6 relative z-10">
-        {% csrf_token %}
-        
-        <!-- Email Field -->
-        <div class="space-y-2">
-            <label for="{{ form.login.id_for_label }}" class="block text-sm font-semibold text-white/90 mb-2 flex items-center">
-                <i class="fas fa-envelope mr-2 text-blue-400"></i>
-                Email Address
-            </label>
-            <div class="relative group">
-                <input type="email" 
-                       name="{{ form.login.name }}" 
-                       id="{{ form.login.id_for_label }}"
-                       placeholder="Enter your email address"
-                       class="modern-input"
-                       {% if form.login.value %}value="{{ form.login.value }}"{% endif %}
-                       required>
-                <div class="absolute left-4 top-1/2 transform -translate-y-1/2 text-white/40 group-focus-within:text-blue-400 transition-colors duration-300 pointer-events-none">
-                    <i class="fas fa-at text-sm"></i>
-                </div>
-                <!-- Focus border effect -->
-                <div class="absolute inset-0 rounded-xl border-2 border-transparent group-focus-within:border-blue-400/50 transition-all duration-300 pointer-events-none"></div>
-                <!-- Glow effect on focus -->
-                <div class="absolute inset-0 rounded-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-300 pointer-events-none shadow-lg shadow-blue-500/20"></div>
-            </div>
-            {% if form.login.errors %}
-                <div class="flex items-center text-red-400 text-sm mt-2 animate-fade-in">
-                    <i class="fas fa-exclamation-triangle mr-2"></i>
-                    {{ form.login.errors.0 }}
-                </div>
-            {% endif %}
-        </div>
+<!-- Non-field error alert -->
+{% if form.non_field_errors %}
+<div class="form-alert" role="alert">
+    <i class="fas fa-circle-exclamation"></i>
+    <div>{{ form.non_field_errors.0 }}</div>
+</div>
+{% endif %}
 
-        <!-- Password Field -->
-        <div class="space-y-2">
-            <label for="{{ form.password.id_for_label }}" class="block text-sm font-semibold text-white/90 mb-2 flex items-center">
-                <i class="fas fa-lock mr-2 text-blue-400"></i>
-                Password
-            </label>
-            <div class="relative group">
-                <input type="password" 
-                       name="{{ form.password.name }}" 
-                       id="{{ form.password.id_for_label }}"
-                       placeholder="Enter your password"
-                       class="modern-input pr-12"
-                       required>
-                <div class="absolute left-4 top-1/2 transform -translate-y-1/2 text-white/40 group-focus-within:text-blue-400 transition-colors duration-300 pointer-events-none">
-                    <i class="fas fa-key text-sm"></i>
-                </div>
-                <button type="button" class="absolute right-4 top-1/2 transform -translate-y-1/2 text-white/50 hover:text-blue-400 transition-colors duration-300 z-10" onclick="togglePassword()">
-                    <i class="fas fa-eye" id="toggleIcon"></i>
-                </button>
-                <!-- Focus border effect -->
-                <div class="absolute inset-0 rounded-xl border-2 border-transparent group-focus-within:border-blue-400/50 transition-all duration-300 pointer-events-none"></div>
-                <!-- Glow effect on focus -->
-                <div class="absolute inset-0 rounded-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-300 pointer-events-none shadow-lg shadow-blue-500/20"></div>
-            </div>
-            {% if form.password.errors %}
-                <div class="flex items-center text-red-400 text-sm mt-2 animate-fade-in">
-                    <i class="fas fa-exclamation-triangle mr-2"></i>
-                    {{ form.password.errors.0 }}
-                </div>
-            {% endif %}
-        </div>
+<!-- Login Form -->
+<form method="post" id="login-form" novalidate>
+    {% csrf_token %}
 
-        <!-- Remember Me & Forgot Password -->
-        <div class="flex items-center justify-between">
-            <div class="flex items-center group">
-                <div class="relative">
-                    <input type="checkbox" 
-                           name="{{ form.remember.name }}" 
-                           id="{{ form.remember.id_for_label }}"
-                           class="sr-only">
-                    <div class="custom-checkbox-bg"></div>
-                    <div class="custom-checkbox-check">
-                        <i class="fas fa-check text-xs"></i>
-                    </div>
-                </div>
-                <label for="{{ form.remember.id_for_label }}" class="ml-3 text-sm text-white/80 cursor-pointer group-hover:text-white transition-colors duration-300 select-none">
-                    Keep me signed in
-                </label>
-            </div>
-            <a href="{% url 'account_reset_password' %}" class="text-sm text-blue-400 hover:text-blue-300 transition duration-300 flex items-center group">
-                <span>Forgot password?</span>
-                <i class="fas fa-arrow-right ml-1 text-xs group-hover:translate-x-1 transition-transform duration-300"></i>
-            </a>
+    <!-- Email Field -->
+    <div class="field-group">
+        <label for="{{ form.login.id_for_label }}" class="field-label">
+            <i class="fas fa-envelope"></i>
+            Email Address
+        </label>
+        <div class="field-wrapper">
+            <input
+                type="email"
+                name="{{ form.login.name }}"
+                id="{{ form.login.id_for_label }}"
+                class="field-input{% if form.login.errors %} has-error{% endif %}"
+                placeholder="you@example.com"
+                autocomplete="email"
+                autocapitalize="off"
+                {% if form.login.value %}value="{{ form.login.value }}"{% endif %}
+                required
+            >
+            <i class="fas fa-at field-icon"></i>
         </div>
-
-        <!-- Error Messages -->
-        {% if form.non_field_errors %}
-            <div class="bg-red-500/10 border border-red-400/30 rounded-xl p-4 backdrop-blur-sm">
-                <div class="flex items-center text-red-400 text-sm">
-                    <i class="fas fa-exclamation-circle mr-2"></i>
-                    {{ form.non_field_errors.0 }}
-                </div>
-            </div>
+        {% if form.login.errors %}
+        <div class="field-error">
+            <i class="fas fa-triangle-exclamation"></i>
+            {{ form.login.errors.0 }}
+        </div>
         {% endif %}
+    </div>
 
-        <!-- Submit Button -->
-        <button type="submit" class="group relative w-full overflow-hidden bg-gradient-to-r from-blue-500 via-blue-600 to-cyan-500 text-white py-4 px-6 rounded-xl hover:from-blue-600 hover:via-blue-700 hover:to-cyan-600 transition-all duration-500 transform hover:scale-[1.02] font-semibold shadow-2xl hover:shadow-blue-500/25">
-            <!-- Button background animation -->
-            <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-            
-            <!-- Button content -->
-            <div class="relative flex items-center justify-center">
-                <i class="fas fa-sign-in-alt mr-2"></i>
-                <span>Access Dashboard</span>
-                <i class="fas fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform duration-300"></i>
-            </div>
-        </button>
-    </form>
+    <!-- Password Field -->
+    <div class="field-group">
+        <label for="{{ form.password.id_for_label }}" class="field-label">
+            <i class="fas fa-lock"></i>
+            Password
+        </label>
+        <div class="field-wrapper">
+            <input
+                type="password"
+                name="{{ form.password.name }}"
+                id="{{ form.password.id_for_label }}"
+                class="field-input{% if form.password.errors %} has-error{% endif %}"
+                placeholder="Enter your password"
+                autocomplete="current-password"
+                required
+            >
+            <i class="fas fa-key field-icon"></i>
+            <button type="button" class="field-action" id="togglePasswordBtn" aria-label="Toggle password visibility">
+                <i class="fas fa-eye" id="toggleIcon"></i>
+            </button>
+        </div>
+        {% if form.password.errors %}
+        <div class="field-error">
+            <i class="fas fa-triangle-exclamation"></i>
+            {{ form.password.errors.0 }}
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Remember Me + Forgot Password -->
+    <div class="form-options">
+        <label class="remember-label" for="{{ form.remember.id_for_label }}">
+            <input
+                type="checkbox"
+                name="{{ form.remember.name }}"
+                id="{{ form.remember.id_for_label }}"
+            >
+            <span>Keep me signed in</span>
+        </label>
+        <a href="{% url 'account_reset_password' %}" class="forgot-link">Forgot password?</a>
+    </div>
+
+    <!-- Submit -->
+    <button type="submit" class="btn-primary" id="submit-btn">
+        <div class="shimmer"></div>
+        <i class="fas fa-right-to-bracket"></i>
+        Sign In to HavenMED
+    </button>
+</form>
+
+<!-- Divider -->
+<div class="divider">
+    <div class="divider-line"></div>
+    <span class="divider-text">Don't have an account?</span>
+    <div class="divider-line"></div>
 </div>
 
-<!-- Sign Up Link -->
-<div class="text-center mt-8 pt-6 border-t border-white/10">
-    <p class="text-white/70 text-sm mb-2">New to HavenMED?</p>
-    <a href="{% url 'account_signup' %}" class="inline-flex items-center text-blue-400 hover:text-blue-300 transition duration-300 font-medium group">
-        <span>Create your account</span>
-        <i class="fas fa-user-plus ml-2 group-hover:scale-110 transition-transform duration-300"></i>
-    </a>
-</div>
+<!-- Sign Up CTA -->
+<p class="signup-prompt">
+    <a href="{% url 'account_signup' %}">Create a free account &rarr;</a>
+</p>
 
-<!-- Custom Styles -->
-<style>
-    /* Modern input styling */
-    .modern-input {
-        width: 100%;
-        padding: 16px 48px 16px 48px;
-        background: rgba(255, 255, 255, 0.08);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 12px;
-        color: white;
-        font-size: 16px;
-        font-weight: 400;
-        transition: all 0.3s ease;
-        backdrop-filter: blur(10px);
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    }
-    
-    .modern-input::placeholder {
-        color: rgba(255, 255, 255, 0.5);
-        font-weight: 300;
-    }
-    
-    .modern-input:focus {
-        outline: none;
-        background: rgba(255, 255, 255, 0.12);
-        border-color: rgba(59, 130, 246, 0.6);
-        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-    }
-    
-    .modern-input:focus::placeholder {
-        color: rgba(59, 130, 246, 0.7);
-    }
-    
-    /* Custom checkbox styling */
-    .custom-checkbox-bg {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 20px;
-        height: 20px;
-        background: rgba(255, 255, 255, 0.1);
-        border: 2px solid rgba(255, 255, 255, 0.3);
-        border-radius: 6px;
-        transition: all 0.3s ease;
-        backdrop-filter: blur(10px);
-        cursor: pointer;
-    }
-    
-    .custom-checkbox-check {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%) scale(0);
-        color: white;
-        transition: transform 0.2s ease;
-        z-index: 1;
-        pointer-events: none;
-    }
-    
-    input[type="checkbox"]:checked + .custom-checkbox-bg {
-        background: linear-gradient(135deg, #3b82f6, #06b6d4);
-        border-color: #3b82f6;
-        box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
-    }
-    
-    input[type="checkbox"]:checked + .custom-checkbox-bg + .custom-checkbox-check {
-        transform: translate(-50%, -50%) scale(1);
-    }
-    
-    .group:hover .custom-checkbox-bg {
-        border-color: rgba(59, 130, 246, 0.6);
-        box-shadow: 0 0 10px rgba(59, 130, 246, 0.2);
-    }
-    
-    /* Animation delays */
-    .animation-delay-1000 {
-        animation-delay: 1s;
-    }
-    
-    /* Fade in animation for errors */
-    @keyframes fade-in {
-        from {
-            opacity: 0;
-            transform: translateY(-10px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-    
-    .animate-fade-in {
-        animation: fade-in 0.3s ease-out;
-    }
-    
-    /* Float animation for background elements */
-    @keyframes float {
-        0%, 100% { transform: translateY(0px) rotate(0deg); }
-        33% { transform: translateY(-10px) rotate(1deg); }
-        66% { transform: translateY(5px) rotate(-1deg); }
-    }
-    
-    /* Remove browser autofill styles */
-    .modern-input:-webkit-autofill,
-    .modern-input:-webkit-autofill:hover,
-    .modern-input:-webkit-autofill:focus {
-        -webkit-box-shadow: 0 0 0 1000px rgba(255, 255, 255, 0.08) inset;
-        -webkit-text-fill-color: white;
-        transition: background-color 5000s ease-in-out 0s;
-    }
-</style>
-
-<!-- JavaScript for password toggle and interactions -->
+<!-- JS -->
 <script>
-    function togglePassword() {
-        const passwordField = document.getElementById('id_password');
-        const toggleIcon = document.getElementById('toggleIcon');
-        
-        if (passwordField.type === 'password') {
-            passwordField.type = 'text';
-            toggleIcon.classList.remove('fa-eye');
-            toggleIcon.classList.add('fa-eye-slash');
-        } else {
-            passwordField.type = 'password';
-            toggleIcon.classList.remove('fa-eye-slash');
-            toggleIcon.classList.add('fa-eye');
-        }
-    }
-    
-    // Enhanced checkbox functionality
-    document.addEventListener('DOMContentLoaded', function() {
-        const checkbox = document.querySelector('input[type="checkbox"]');
-        const checkboxBg = document.querySelector('.custom-checkbox-bg');
-        
-        if (checkboxBg) {
-            checkboxBg.addEventListener('click', function() {
-                checkbox.checked = !checkbox.checked;
-                checkbox.dispatchEvent(new Event('change'));
+    // Password visibility toggle
+    (function () {
+        const btn  = document.getElementById('togglePasswordBtn');
+        const pwd  = document.getElementById('{{ form.password.id_for_label }}');
+        const icon = document.getElementById('toggleIcon');
+
+        if (btn && pwd) {
+            btn.addEventListener('click', function () {
+                const isHidden = pwd.type === 'password';
+                pwd.type = isHidden ? 'text' : 'password';
+                icon.className = isHidden ? 'fas fa-eye-slash' : 'fas fa-eye';
             });
         }
-        
-        // Add floating animation to background elements
-        const floatingElements = document.querySelectorAll('.animate-pulse');
-        floatingElements.forEach(el => {
-            el.style.animation = 'float 6s ease-in-out infinite';
+    })();
+
+    // Loading state on submit
+    (function () {
+        const form = document.getElementById('login-form');
+        const btn  = document.getElementById('submit-btn');
+
+        if (form && btn) {
+            form.addEventListener('submit', function () {
+                btn.disabled = true;
+                btn.innerHTML = '<div class="shimmer"></div><i class="fas fa-circle-notch fa-spin"></i> Signing in…';
+            });
+        }
+    })();
+
+    // Field icon color sync
+    document.querySelectorAll('.field-input').forEach(function (input) {
+        input.addEventListener('focus', function () {
+            const icon = this.nextElementSibling;
+            if (icon && icon.classList.contains('field-icon')) {
+                icon.style.color = 'var(--primary)';
+            }
         });
-        
-        // Add focus management for better UX
-        const inputs = document.querySelectorAll('.modern-input');
-        inputs.forEach(input => {
-            input.addEventListener('focus', function() {
-                this.parentElement.classList.add('focused');
-            });
-            
-            input.addEventListener('blur', function() {
-                this.parentElement.classList.remove('focused');
-            });
+        input.addEventListener('blur', function () {
+            const icon = this.nextElementSibling;
+            if (icon && icon.classList.contains('field-icon')) {
+                icon.style.color = '';
+            }
         });
     });
 </script>
+
 {% endblock %}
